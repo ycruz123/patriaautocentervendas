@@ -55,7 +55,6 @@ enum TipoLembrete {
 
 enum FonteSourcing {
   MANUAL
-  CNPJ_RECEITA
   GOOGLE_PLACES
 }
 
@@ -64,7 +63,6 @@ model Lead {
   nome      String
   contato   String? // nome do contato, cargo, etc. (opcional)
   whatsapp  String // formato internacional normalizado: 55DDDNUMERO
-  cnpj      String? @unique // usado para deduplicação no sourcing B2B
 
   tipo    TipoLead
   origem  OrigemLead

@@ -5,15 +5,14 @@ custo de operação R$0 na v1, pensado para manutenção por uma pessoa só.
 
 ## Stack
 
-- **Frontend + backend**: Next.js 14 (App Router), TypeScript, Tailwind CSS.
+- **Frontend + backend**: Next.js 16 (App Router), TypeScript, Tailwind CSS.
 - **Banco de dados**: Postgres via [Supabase](https://supabase.com) (plano free).
 - **ORM**: Prisma.
 - **Hospedagem**: Vercel (plano free/Hobby).
 - **Autenticação**: senha única (single-user), sem custo de provedor de auth.
 
-Nenhuma dependência paga é necessária para rodar a v1. As únicas chamadas
-externas são a APIs públicas gratuitas de CNPJ e, opcionalmente, o Google
-Places (dentro da cota mensal gratuita).
+Nenhuma dependência paga é necessária para rodar a v1. A única chamada
+externa é o Google Places, dentro da cota mensal gratuita.
 
 ## Setup local
 
@@ -80,40 +79,24 @@ Places (dentro da cota mensal gratuita).
   segmento.
 - **Painel de perdas** (`/perdas`): motivos de recusa mais comuns.
 - **Sourcing automatizado** (`/sourcing`): busca de leads novos por
-  setor+cidade, com deduplicação por CNPJ/telefone, para os dois segmentos.
+  categoria+cidade no Google Places, com deduplicação por telefone, para os
+  dois segmentos.
 
-## Sourcing B2B — limitações conhecidas (leia antes de usar em produção)
+## Sourcing — Google Places (B2B profissional e Automotivo premium)
 
-O sourcing por CNPJ tem duas etapas independentes, configuráveis via env:
+Os dois segmentos usam a mesma integração (`src/lib/google-places.ts`):
+Text Search para achar estabelecimentos por categoria+cidade, e Place
+Details por item para obter o telefone (Text Search sozinho não retorna
+telefone). Fica dentro da cota mensal gratuita da API no volume esperado do
+Base One; monitore o uso no Google Cloud Console se o volume de buscas
+crescer. Requer `GOOGLE_PLACES_API_KEY` configurada — sem ela, o botão de
+sourcing retorna erro explicando o que falta, em vez de falhar
+silenciosamente.
 
-- **Enriquecimento** (`CNPJ_ENRICHMENT_BASE_URL`, padrão: BrasilAPI —
-  `https://brasilapi.com.br/api/cnpj/v1`): consulta individual por CNPJ,
-  gratuita, sem chave, sem limite documentado além de proteção anti-abuso.
-  Testada e estável.
-
-- **Descoberta** (`CNPJ_DISCOVERY_BASE_URL` + `CNPJ_DISCOVERY_API_KEY`):
-  busca por CNAE + UF + município. **As APIs públicas gratuitas que
-  oferecem esse tipo de busca (ex: CNPJá, agregadores de dados abertos da
-  Receita) mudam de nome, endpoint e limites de forma frequente.** O código
-  em `src/lib/cnpj.ts` já está pronto e é só apontar a env var para o
-  provedor escolhido — mas **confirme o endpoint, os nomes dos parâmetros
-  de query e os limites de uso atuais antes de ligar isso em produção**, já
-  que isso não foi possível validar com uma chamada real neste ambiente.
-  Alternativa sem depender de API de terceiros: importar o dump público de
-  CNPJ da Receita Federal (https://dadosabertos.rfb.gov.br/CNPJ/) para uma
-  tabela própria no mesmo Postgres e consultar localmente — mais trabalho
-  de ETL, mas sem limite de requisições. Ficou fora do escopo da v1 por ser
-  um dump de vários GB (não cabe no free tier do Supabase sem filtrar antes
-  do import).
-
-Sem `CNPJ_DISCOVERY_BASE_URL` configurado, o botão de sourcing B2B retorna
-erro explicando o que falta — não falha silenciosamente.
-
-## Sourcing Automotivo — Google Places
-
-Usa Text Search + Place Details (para obter telefone). Fica dentro da cota
-mensal gratuita da API no volume esperado do Base One; monitore o uso no
-Google Cloud Console se o volume de buscas crescer.
+Para B2B profissional, a categoria é texto livre (ex: "escritório de
+advocacia", "clínica odontológica", "escritório de contabilidade") — o
+Google Maps já indexa esses estabelecimentos com telefone e endereço, sem
+precisar de CNPJ ou de nenhuma API de dados abertos da Receita Federal.
 
 ## Números de WhatsApp
 
@@ -129,6 +112,6 @@ resultado).
 
 Ver o documento de briefing original — em resumo: nenhuma ligação
 automática sem ação do usuário, nenhuma telefonia paga, nenhum envio
-automático de mensagem ao lead, e a IA entra só qualificando resultados já
-buscados por fonte estruturada (CNPJ/Google Places), nunca varrendo a
-internet por conta própria.
+automático de mensagem ao lead, e a camada de qualificação (heurística,
+sem custo) roda só sobre resultados já buscados pelo Google Places, nunca
+como uma IA varrendo a internet por conta própria.

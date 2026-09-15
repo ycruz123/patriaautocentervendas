@@ -1,12 +1,9 @@
 /**
  * Camada de qualificação sobre os resultados brutos do sourcing — nunca faz
- * parte da busca em si. Sinaliza indícios (site/marca ativa, porte aparente)
- * para ajudar a priorizar por onde começar a ligar.
+ * parte da busca em si. Sinaliza indícios (nome fantasia, avaliação no
+ * Google) para ajudar a priorizar por onde começar a ligar.
  *
- * Roda sempre com heurísticas locais (determinísticas, sem custo). Se
- * ANTHROPIC_API_KEY estiver configurada, usa o modelo para refinar o score
- * em lote; se a chamada falhar por qualquer motivo, cai de volta na
- * heurística — a qualificação nunca pode travar o sourcing.
+ * Roda inteiramente com heurísticas locais, determinísticas e sem custo.
  */
 
 export interface SinaisQualificacao {

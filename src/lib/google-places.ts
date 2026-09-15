@@ -1,8 +1,9 @@
 /**
- * Sourcing Automotivo premium via Google Places API (Text Search / Nearby
- * Search), usado apenas para concessionárias e oficinas de importados/luxo.
- * Fica dentro da cota mensal gratuita da API no volume esperado do Base One
- * — monitorar se o uso crescer.
+ * Sourcing via Google Places API (Text Search + Place Details), usado para
+ * os dois segmentos: B2B profissional (advocacia, contabilidade,
+ * consultoria, clínicas, arquitetura) e Automotivo premium (concessionárias,
+ * oficinas de importados/luxo). Fica dentro da cota mensal gratuita da API
+ * no volume esperado do Base One — monitorar se o uso crescer.
  */
 
 export interface EstabelecimentoEncontrado {

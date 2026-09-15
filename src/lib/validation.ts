@@ -68,13 +68,7 @@ export const dispositionSchema = z.discriminatedUnion("resultado", [
   }),
 ]);
 
-export const sourcingB2BSchema = z.object({
-  cnae: z.string().min(4, "CNAE é obrigatório"),
-  uf: z.string().length(2, "UF deve ter 2 letras"),
-  cidades: z.array(z.string().min(1)).min(1, "Informe ao menos uma cidade"),
-});
-
-export const sourcingAutomotivoSchema = z.object({
+export const sourcingGooglePlacesSchema = z.object({
   categoria: z.string().min(1, "Categoria é obrigatória"),
   cidades: z.array(z.string().min(1)).min(1, "Informe ao menos uma cidade"),
 });

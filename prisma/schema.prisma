@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum TipoLead {
+  B2B_PROFISSIONAL
+  AUTOMOTIVO_PREMIUM
+  OUTRO
+}
+
+enum OrigemLead {
+  PROSPECCAO_ATIVA
+  INDICACAO
+  INBOUND
+  OUTRO
+}
+
+enum EstagioLead {
+  NOVO_LEAD
+  CONTATO_FEITO
+  PROPOSTA_ENVIADA
+  NEGOCIACAO
+  CLIENTE_ATIVO
+  PERDIDO
+  DADO_INVALIDO
+}
+
+enum ResultadoLigacao {
+  REUNIAO_MARCADA
+  ACEITOU_PROPOSTA
+  LIGAR_DEPOIS
+  NAO_ATENDEU
+  RECUSADO
+  NUMERO_INVALIDO
+}
+
+enum MotivoPerda {
+  PRECO
+  JA_TEM_FORNECEDOR
+  NAO_E_O_MOMENTO
+  PERFIL_NAO_COMBINA
+  OUTRO
+}
+
+enum TipoLembrete {
+  CADENCIA
+  DISPOSICAO
+}
+
+enum FonteSourcing {
+  MANUAL
+  CNPJ_RECEITA
+  GOOGLE_PLACES
+}
+
+model Lead {
+  id        String @id @default(cuid())
+  nome      String
+  contato   String? // nome do contato, cargo, etc. (opcional)
+  whatsapp  String // formato internacional normalizado: 55DDDNUMERO
+  cnpj      String? @unique // usado para deduplicação no sourcing B2B
+
+  tipo    TipoLead
+  origem  OrigemLead
+  estagio EstagioLead @default(NOVO_LEAD)
+
+  valor Decimal? @db.Decimal(10, 2)
+  notas String?  @db.Text
+
+  cidade String?
+  uf     String?
+
+  ultimaTentativaContato DateTime?
+  tentativasSemSucesso   Int       @default(0)
+  sinalizadoRevisar      Boolean   @default(false)
+  proximaAcaoData        DateTime?
+  motivoPerda            MotivoPerda?
+  motivoPerdaDetalhe     String?
+
+  fonteSourcing    FonteSourcing @default(MANUAL)
+  scoreQualificacao Int?
+  sinaisQualificacao Json?
+
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  registrosLigacao RegistroLigacao[]
+  lembretes        Lembrete[]
+
+  @@index([estagio])
+  @@index([tipo])
+  @@index([atualizadoEm])
+}
+
+model RegistroLigacao {
+  id       String   @id @default(cuid())
+  leadId   String
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  dataHora DateTime @default(now())
+  resultado ResultadoLigacao?
+  detalhe   String? @db.Text
+  criadoEm DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model Lembrete {
+  id        String       @id @default(cuid())
+  leadId    String
+  lead      Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tipo      TipoLembrete
+  dataHora  DateTime
+  mensagem  String
+  concluido Boolean      @default(false)
+  criadoEm  DateTime     @default(now())
+
+  @@index([leadId])
+  @@index([dataHora, concluido])
+}

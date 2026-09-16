@@ -8,15 +8,22 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const parsed = loginSchema.safeParse(body);
   if (!parsed.success) {
+    console.warn("[login] payload inválido:", JSON.stringify(parsed.error.flatten()));
     return NextResponse.json({ error: "E-mail ou senha incorretos" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email.toLowerCase().trim() },
-  });
+  const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
 
-  // Mesma mensagem de erro em todos os casos — não dá pista se o e-mail existe.
-  if (!user || !user.ativo || !(await verifyPassword(parsed.data.senha, user.senhaHash))) {
+  if (!user) {
+    console.warn(`[login] nenhum usuário com o e-mail: "${parsed.data.email}"`);
+    return NextResponse.json({ error: "E-mail ou senha incorretos" }, { status: 401 });
+  }
+  if (!user.ativo) {
+    console.warn(`[login] usuário inativo: ${parsed.data.email}`);
+    return NextResponse.json({ error: "E-mail ou senha incorretos" }, { status: 401 });
+  }
+  if (!(await verifyPassword(parsed.data.senha, user.senhaHash))) {
+    console.warn(`[login] senha não confere para: ${parsed.data.email}`);
     return NextResponse.json({ error: "E-mail ou senha incorretos" }, { status: 401 });
   }
 

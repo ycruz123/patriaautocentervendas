@@ -3,13 +3,16 @@ import { z } from "zod";
 export const roleEnum = z.enum(["ADMIN", "VENDEDOR"]);
 
 export const loginSchema = z.object({
-  email: z.string().email("E-mail inválido"),
-  senha: z.string().min(1, "Senha é obrigatória"),
+  // .trim()/.toLowerCase() ANTES de validar o formato — espaço colado por
+  // autofill/copiar-colar não pode derrubar a validação antes mesmo de
+  // comparar a senha.
+  email: z.string().trim().toLowerCase().email("E-mail inválido"),
+  senha: z.string().trim().min(1, "Senha é obrigatória"),
 });
 
 export const createUserSchema = z.object({
-  nome: z.string().min(1, "Nome é obrigatório").max(200),
-  email: z.string().email("E-mail inválido"),
+  nome: z.string().trim().min(1, "Nome é obrigatório").max(200),
+  email: z.string().trim().toLowerCase().email("E-mail inválido"),
   senha: z.string().min(6, "Senha deve ter ao menos 6 caracteres"),
   role: roleEnum,
 });

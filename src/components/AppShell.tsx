@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import clsx from "clsx";
 import { Logo, LogoMark } from "@/components/Logo";
+import { PendingCallsPanel } from "@/components/PendingCallsPanel";
 
 const NAV_ITEMS = [
   { href: "/", label: "Painel", icon: IconGrid },
@@ -58,6 +59,8 @@ export function AppShell({ children, user }: { children: React.ReactNode; user: 
           <div className="mx-auto max-w-5xl">{children}</div>
         </main>
       </div>
+
+      {user && <PendingCallsPanel />}
     </div>
   );
 }

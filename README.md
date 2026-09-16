@@ -118,10 +118,15 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
 - **Ligar via WhatsApp**: botão "Ligar" em cada lead abre `wa.me` e registra
   automaticamente a tentativa de contato. A chamada de voz em si é iniciada
   manualmente pelo usuário dentro do WhatsApp — sem API de voz, sem custo.
-- **Disposição pós-ligação**: ao voltar de uma ligação, registre o
-  resultado; o sistema aplica a ação automática correspondente (mudança de
-  estágio, contador de tentativas, lembrete agendado) conforme a tabela do
-  briefing original.
+- **Disposição pós-ligação**: assim que a aba volta a ficar visível depois
+  de um "Ligar" (usuário saiu pro WhatsApp e voltou), um painel lateral abre
+  sozinho pedindo o resultado de cada ligação em aberto — sem precisar
+  entrar no lead manualmente. Ao salvar, o sistema aplica a ação automática
+  correspondente (mudança de estágio, contador de tentativas, lembrete
+  agendado) conforme a tabela do briefing original. Um sino flutuante
+  mantém a pendência visível caso o painel seja fechado antes de resolver
+  todas; o registro manual pelo detalhe do lead ("Registrar disposição")
+  continua disponível para pendências antigas.
 - **Lembretes de cadência**: job diário (`/api/cron/reminders`) sinaliza
   leads ativos sem atualização há `CADENCIA_LEMBRETE_DIAS` dias (padrão: 3),
   desde que não haja um lembrete pendente já agendado por uma disposição.

@@ -1,15 +1,26 @@
-import bcrypt from "bcryptjs";
+import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 
-// bcryptjs, não a lib nativa `bcrypt` — evita binding nativo, que não
-// funciona no runtime serverless da Vercel sem etapa de build extra.
-// Só é importado por rotas de API (Node runtime), nunca pelo middleware.
+// scrypt nativo do Node (módulo `crypto`) em vez de uma lib externa de
+// hash — zero dependência de terceiros para essa parte, então o
+// comportamento não pode variar entre o ambiente de build/dev e o
+// runtime serverless real da Vercel. Só é importado por rotas de API
+// (Node runtime), nunca pelo middleware.
 
-const SALT_ROUNDS = 12;
+const KEY_LENGTH = 64;
 
-export function hashPassword(plain: string): Promise<string> {
-  return bcrypt.hash(plain, SALT_ROUNDS);
+export async function hashPassword(plain: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(plain, salt, KEY_LENGTH).toString("hex");
+  return `${salt}:${hash}`;
 }
 
-export function verifyPassword(plain: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(plain, hash);
+export async function verifyPassword(plain: string, stored: string): Promise<boolean> {
+  const [salt, hashHex] = stored.split(":");
+  if (!salt || !hashHex) return false;
+
+  const hash = scryptSync(plain, salt, KEY_LENGTH);
+  const storedHash = Buffer.from(hashHex, "hex");
+  if (hash.length !== storedHash.length) return false;
+
+  return timingSafeEqual(hash, storedHash);
 }

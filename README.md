@@ -11,7 +11,8 @@ custo de operação R$0 na v1, pensado para manutenção por uma pessoa só.
 - **ORM**: Prisma.
 - **Hospedagem**: Vercel (plano free/Hobby).
 - **Autenticação**: e-mail + senha (multiusuário), sessão assinada com
-  HMAC (Web Crypto), senha em hash bcrypt — sem custo de provedor de auth.
+  HMAC (Web Crypto), senha em hash scrypt (módulo `crypto` nativo do
+  Node, sem dependência externa) — sem custo de provedor de auth.
 
 Nenhuma dependência paga é necessária para as funcionalidades centrais (a
 única chamada externa nelas é o Google Places, dentro da cota mensal
@@ -83,7 +84,7 @@ Login é por e-mail + senha (multiusuário, não mais senha única). Papéis:
   ao `/admin`.
 
 Os dois usuários iniciais já vêm criados por uma migration (senha em hash
-bcrypt, nunca em texto puro no repositório):
+scrypt, nunca em texto puro no repositório):
 
 - **Yuri Cruz** (`yuricruzoficiall@gmail.com`) — ADMIN
 - **Isabelli Loiola** (`isabelliloiola2015@gmail.com`) — VENDEDOR
@@ -98,8 +99,11 @@ ficar todo mundo sem acesso de admin por engano).
 A sessão é um token assinado com HMAC-SHA256 (Web Crypto, funciona tanto
 nas rotas normais quanto no middleware/Edge), guardando `userId`, e-mail,
 nome e papel — sem tocar o banco a cada requisição pra saber quem está
-logado. Senhas usam bcrypt (custo 12) via `bcryptjs` (pura JS, sem binding
-nativo, compatível com o runtime serverless da Vercel).
+logado. Senhas usam scrypt do módulo `crypto` nativo do Node (sem
+dependência externa) — chegamos nisso depois de descobrir, em produção,
+que uma lib de hash de terceiros (bcryptjs) se comportava de forma
+diferente no runtime serverless da Vercel do que num build local idêntico;
+trocar para a API nativa do Node elimina esse tipo de risco de vez.
 
 ## Funcionalidades
 

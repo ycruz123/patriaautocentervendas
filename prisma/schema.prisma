@@ -59,6 +59,7 @@ enum TipoLembrete {
 enum FonteSourcing {
   MANUAL
   GOOGLE_PLACES
+  IA_WEB
 }
 
 model Lead {

@@ -15,16 +15,16 @@ export function LeadFilters() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-3 sm:flex-row">
       <input
-        className="input"
+        className="input sm:flex-1"
         placeholder="Buscar por nome…"
         defaultValue={searchParams.get("busca") ?? ""}
         onChange={(e) => update("busca", e.target.value)}
       />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:w-auto">
         <select
-          className="input"
+          className="input sm:w-48"
           defaultValue={searchParams.get("estagio") ?? ""}
           onChange={(e) => update("estagio", e.target.value)}
         >
@@ -36,7 +36,7 @@ export function LeadFilters() {
           ))}
         </select>
         <select
-          className="input"
+          className="input sm:w-48"
           defaultValue={searchParams.get("tipo") ?? ""}
           onChange={(e) => update("tipo", e.target.value)}
         >

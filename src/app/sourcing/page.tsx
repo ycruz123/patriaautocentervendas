@@ -12,8 +12,12 @@ interface Resumo {
 
 export default function SourcingPage() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-bold">Buscar leads novos</h1>
+    <div className="space-y-5">
+      <div>
+        <h1 className="page-title">Buscar leads novos</h1>
+        <p className="text-sm text-ink-400">Sourcing automatizado via Google Places, por categoria e cidade.</p>
+      </div>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       <SourcingForm
         endpoint="/api/sourcing/b2b"
         titulo="B2B profissional (Google Places)"
@@ -26,6 +30,7 @@ export default function SourcingPage() {
         descricao="Busca concessionárias e oficinas de importados/luxo no Google Maps. Requer GOOGLE_PLACES_API_KEY configurada."
         categoriaPadrao="concessionária de importados"
       />
+      </div>
     </div>
   );
 }
@@ -39,9 +44,9 @@ function parseCidades(value: string): string[] {
 
 function ResumoBox({ resumo }: { resumo: Resumo }) {
   return (
-    <div className="mt-3 space-y-1 rounded-lg bg-slate-50 p-3 text-sm">
-      <p>Encontrados: {resumo.encontrados}</p>
-      <p>Importados: {resumo.importados}</p>
+    <div className="mt-3 space-y-1 rounded-lg bg-ink-50 p-3 text-sm text-ink-700">
+      <p>Encontrados: <strong>{resumo.encontrados}</strong></p>
+      <p>Importados: <strong className="text-emerald-700">{resumo.importados}</strong></p>
       <p>Duplicados (já no pipeline): {resumo.duplicados}</p>
       <p>Sem telefone/WhatsApp válido: {resumo.semTelefone}</p>
       {resumo.erros.length > 0 && (
@@ -94,8 +99,8 @@ function SourcingForm({
 
   return (
     <div className="card space-y-3">
-      <h2 className="font-semibold">{titulo}</h2>
-      <p className="text-xs text-slate-500">{descricao}</p>
+      <h2 className="text-sm font-semibold text-ink-900">{titulo}</h2>
+      <p className="text-xs text-ink-400">{descricao}</p>
       <div>
         <label className="label">Categoria</label>
         <input className="input" value={categoria} onChange={(e) => setCategoria(e.target.value)} />

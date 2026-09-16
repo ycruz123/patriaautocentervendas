@@ -42,15 +42,13 @@ export function LeadDetailActions({ leadId }: { leadId: string }) {
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-2">
-        <button onClick={ligar} disabled={ligando} className="btn-success">
-          {ligando ? "Abrindo…" : "📞 Ligar"}
-        </button>
-        <button onClick={() => setModalAberto(true)} className="btn-primary">
-          Registrar disposição
-        </button>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
+      <button onClick={ligar} disabled={ligando} className="btn-gold w-full">
+        {ligando ? "Abrindo…" : "📞 Ligar"}
+      </button>
+      <button onClick={() => setModalAberto(true)} className="btn-primary w-full">
+        Registrar disposição
+      </button>
+      <div className="grid grid-cols-2 gap-2 pt-1">
         <a href={`/leads/${leadId}/edit`} className="btn-secondary text-center">
           Editar
         </a>

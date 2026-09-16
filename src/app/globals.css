@@ -8,37 +8,63 @@ body {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-ink-50 text-ink-900 antialiased;
 }
 
 .card {
-  @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm;
+  @apply rounded-xl border border-ink-100 bg-white p-5 shadow-card;
 }
 
 .btn {
-  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition active:scale-[0.98];
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
 }
 
 .btn-primary {
-  @apply btn bg-brand-500 text-white hover:bg-brand-600;
+  @apply btn bg-ink-900 text-white hover:bg-ink-800;
+}
+
+.btn-gold {
+  @apply btn bg-gold-500 text-ink-950 hover:bg-gold-400;
 }
 
 .btn-secondary {
-  @apply btn bg-slate-100 text-slate-700 hover:bg-slate-200;
+  @apply btn border border-ink-200 bg-white text-ink-700 hover:bg-ink-50;
 }
 
 .btn-success {
-  @apply btn bg-emerald-500 text-white hover:bg-emerald-600;
+  @apply btn bg-emerald-600 text-white hover:bg-emerald-500;
 }
 
 .btn-danger {
-  @apply btn bg-red-500 text-white hover:bg-red-600;
+  @apply btn bg-red-600 text-white hover:bg-red-500;
 }
 
 .input {
-  @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500;
+  @apply w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500;
 }
 
 .label {
-  @apply mb-1 block text-sm font-medium text-slate-700;
+  @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-500;
+}
+
+.page-title {
+  @apply text-xl font-bold tracking-tight text-ink-900;
+}
+
+.page-header {
+  @apply mb-6 flex flex-wrap items-center justify-between gap-3;
+}
+
+::selection {
+  background-color: theme("colors.gold.500");
+  color: theme("colors.ink.950");
+}
+
+/* Scrollbar discreto pra área da sidebar em telas pequenas */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
 }

@@ -1,6 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
-import { Nav } from "@/components/Nav";
+import { AppShell } from "@/components/AppShell";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-montserrat",
+});
 
 export const metadata: Metadata = {
   title: "Base One — Prospecção",
@@ -14,12 +21,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
-      <body>
-        <div className="mx-auto flex min-h-screen max-w-2xl flex-col pb-20">
-          <main className="flex-1 px-4 py-4">{children}</main>
-          <Nav />
-        </div>
+    <html lang="pt-BR" className={montserrat.variable}>
+      <body className="font-sans">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

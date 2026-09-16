@@ -21,20 +21,27 @@ export default async function LeadsPage({
   const leads = await prisma.lead.findMany({ where, orderBy: { atualizadoEm: "desc" } });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Leads</h1>
-        <Link href="/leads/new" className="btn-primary">
-          + Novo
+    <div className="space-y-5">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Leads</h1>
+          <p className="text-sm text-ink-400">{leads.length} lead{leads.length === 1 ? "" : "s"} encontrado{leads.length === 1 ? "" : "s"}</p>
+        </div>
+        <Link href="/leads/new" className="btn-gold">
+          + Novo lead
         </Link>
       </div>
 
-      <Suspense>
-        <LeadFilters />
-      </Suspense>
+      <div className="card">
+        <Suspense>
+          <LeadFilters />
+        </Suspense>
+      </div>
 
       <div className="space-y-3">
-        {leads.length === 0 && <p className="text-sm text-slate-500">Nenhum lead encontrado.</p>}
+        {leads.length === 0 && (
+          <div className="card text-center text-sm text-ink-400">Nenhum lead encontrado.</div>
+        )}
         {leads.map((lead) => (
           <LeadCard
             key={lead.id}

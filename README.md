@@ -6,7 +6,8 @@ custo de operação R$0 na v1, pensado para manutenção por uma pessoa só.
 ## Stack
 
 - **Frontend + backend**: Next.js 16 (App Router), TypeScript, Tailwind CSS.
-- **Banco de dados**: Postgres via [Supabase](https://supabase.com) (plano free).
+- **Banco de dados**: Postgres via a integração **Prisma Postgres** do
+  marketplace da própria Vercel (Storage → Create Database), plano free.
 - **ORM**: Prisma.
 - **Hospedagem**: Vercel (plano free/Hobby).
 - **Autenticação**: senha única (single-user), sem custo de provedor de auth.
@@ -21,11 +22,12 @@ externa é o Google Places, dentro da cota mensal gratuita.
    npm install
    ```
 
-2. **Criar um projeto Supabase** (free tier: 500MB de banco, pausa após 7
-   dias de inatividade — reative pelo painel se isso acontecer).
-   - Em Project Settings → Database, copie a *Connection string* no modo
-     **Transaction** (porta 6543, com `?pgbouncer=true`) para `DATABASE_URL`,
-     e a **Session**/direct (porta 5432) para `DIRECT_URL`.
+2. **Banco de dados**: em produção, o projeto usa a integração **Prisma
+   Postgres** do marketplace da Vercel (ver seção Deploy abaixo) — ela
+   provisiona o banco e injeta `POSTGRES_URL` automaticamente, sem precisar
+   de conta em outro serviço. Para rodar localmente, copie o valor de
+   `POSTGRES_URL` do painel da Vercel (Settings → Environment Variables) do
+   projeto já deployado, ou aponte para qualquer Postgres local/próprio.
 
 3. **Copiar `.env.example` para `.env`** e preencher:
    ```bash
@@ -49,15 +51,25 @@ externa é o Google Places, dentro da cota mensal gratuita.
 
 ## Deploy (Vercel)
 
-1. Importe o repositório na Vercel.
-2. Configure as mesmas variáveis de ambiente do `.env` no painel do projeto
-   (Settings → Environment Variables), incluindo `CRON_SECRET`.
-3. O `vercel.json` já define o cron diário do lembrete de cadência
+1. Importe o repositório na Vercel (New Project → selecione o repo).
+2. Configure as variáveis de ambiente da aplicação no painel do projeto
+   (Settings → Environment Variables): `APP_PASSWORD`, `SESSION_SECRET`,
+   `CRON_SECRET`, `GOOGLE_PLACES_API_KEY` (opcional) e
+   `CADENCIA_LEMBRETE_DIAS`.
+3. Adicione o banco: **Storage → Create Database → Prisma Postgres** (plano
+   free) e conecte ao projeto. Isso cria as variáveis `DATABASE_URL`,
+   `PRISMA_DATABASE_URL` e `POSTGRES_URL` automaticamente — o projeto usa
+   só a `POSTGRES_URL` (ver `prisma/schema.prisma`), as outras duas ficam
+   sem uso.
+4. Rode as migrations contra esse banco (`npx prisma migrate deploy` com
+   `POSTGRES_URL` apontando pra ele localmente, ou via SQL direto no
+   painel do banco) antes do primeiro acesso ao app — o deploy builda sem
+   problema mesmo sem isso, mas as páginas vão falhar ao consultar tabelas
+   que ainda não existem.
+5. O `vercel.json` já define o cron diário do lembrete de cadência
    (`/api/cron/reminders`, 12h UTC). O plano Hobby só permite cron com
    frequência mínima diária — por isso o job roda 1x/dia e verifica todos os
    leads parados de uma vez, e não a cada X dias por lead individualmente.
-4. Rode `npx prisma migrate deploy` apontando para o banco de produção antes
-   do primeiro deploy (ou configure isso como parte do seu pipeline).
 
 ## Funcionalidades
 

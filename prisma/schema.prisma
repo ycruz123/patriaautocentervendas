@@ -4,8 +4,11 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // Nomes usados pela integração "Prisma Postgres" do marketplace da
+  // Vercel — POSTGRES_URL é a connection string Postgres padrão (sem
+  // Accelerate), compatível com o Prisma Client sem extensões extras.
+  url       = env("POSTGRES_URL")
+  directUrl = env("POSTGRES_URL")
 }
 
 enum TipoLead {

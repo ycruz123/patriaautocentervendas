@@ -78,3 +78,22 @@ export const sourcingIASchema = z.object({
   cidades: z.array(z.string().min(1)).min(1, "Informe ao menos uma cidade"),
   tipo: tipoLeadEnum,
 });
+
+export const importLeadsSchema = z.object({
+  tipo: tipoLeadEnum,
+  origem: origemLeadEnum,
+  linhas: z
+    .array(
+      z.object({
+        nome: z.string().max(200).optional().default(""),
+        whatsapp: z.string().max(50).optional().default(""),
+        contato: z.string().max(200).optional().nullable(),
+        cidade: z.string().max(120).optional().nullable(),
+        uf: z.string().max(2).optional().nullable(),
+        valor: z.string().max(50).optional().nullable(),
+        notas: z.string().max(5000).optional().nullable(),
+      })
+    )
+    .min(1, "Nenhuma linha para importar")
+    .max(2000, "Máximo de 2000 linhas por importação"),
+});

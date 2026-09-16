@@ -60,6 +60,7 @@ enum FonteSourcing {
   MANUAL
   GOOGLE_PLACES
   IA_WEB
+  IMPORTACAO_CSV
 }
 
 model Lead {

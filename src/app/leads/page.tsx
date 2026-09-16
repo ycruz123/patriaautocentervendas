@@ -27,9 +27,14 @@ export default async function LeadsPage({
           <h1 className="page-title">Leads</h1>
           <p className="text-sm text-ink-400">{leads.length} lead{leads.length === 1 ? "" : "s"} encontrado{leads.length === 1 ? "" : "s"}</p>
         </div>
-        <Link href="/leads/new" className="btn-gold">
-          + Novo lead
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/leads/importar" className="btn-secondary">
+            Importar CSV
+          </Link>
+          <Link href="/leads/new" className="btn-gold">
+            + Novo lead
+          </Link>
+        </div>
       </div>
 
       <div className="card">

@@ -79,6 +79,10 @@ abaixo antes de habilitá-la.
 
 - **Pipeline de leads** (`/leads`): CRUD completo, busca e filtro por
   estágio/tipo/nome.
+- **Importação via CSV** (`/leads/importar`): sobe uma planilha, mapeia
+  colunas (com auto-detecção de cabeçalhos comuns em PT/EN), mostra prévia e
+  importa com a mesma normalização de WhatsApp e deduplicação por telefone
+  do resto do sistema. Zero custo — roda tudo localmente e no próprio banco.
 - **Ligar via WhatsApp**: botão "Ligar" em cada lead abre `wa.me` e registra
   automaticamente a tentativa de contato. A chamada de voz em si é iniciada
   manualmente pelo usuário dentro do WhatsApp — sem API de voz, sem custo.

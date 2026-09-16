@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/AppShell";
+import { getSessionUser } from "@/lib/auth";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -19,11 +20,14 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSessionUser();
+  const user = session ? { nome: session.nome, role: session.role } : null;
+
   return (
     <html lang="pt-BR" className={montserrat.variable}>
       <body className="font-sans">
-        <AppShell>{children}</AppShell>
+        <AppShell user={user}>{children}</AppShell>
       </body>
     </html>
   );

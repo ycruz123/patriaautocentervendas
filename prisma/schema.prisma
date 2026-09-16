@@ -11,6 +11,22 @@ datasource db {
   directUrl = env("POSTGRES_URL")
 }
 
+enum Role {
+  ADMIN
+  VENDEDOR
+}
+
+model User {
+  id           String   @id @default(cuid())
+  nome         String
+  email        String   @unique
+  senhaHash    String
+  role         Role     @default(VENDEDOR)
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
 enum TipoLead {
   B2B_PROFISSIONAL
   AUTOMOTIVO_PREMIUM

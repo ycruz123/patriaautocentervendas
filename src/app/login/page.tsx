@@ -15,6 +15,7 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -26,10 +27,10 @@ function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senha }),
+        body: JSON.stringify({ email, senha }),
       });
       if (!res.ok) {
-        setErro("Senha incorreta");
+        setErro("E-mail ou senha incorretos");
         return;
       }
       router.push(searchParams.get("next") || "/");
@@ -55,8 +56,18 @@ function LoginForm() {
 
           <div className="space-y-3">
             <input
-              type="password"
+              type="email"
               autoFocus
+              autoComplete="username"
+              className="w-full rounded-lg border border-white/10 bg-ink-900 px-3 py-2.5 text-sm text-white placeholder:text-ink-400 focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500"
+              placeholder="E-mail"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && entrar()}
+            />
+            <input
+              type="password"
+              autoComplete="current-password"
               className="w-full rounded-lg border border-white/10 bg-ink-900 px-3 py-2.5 text-sm text-white placeholder:text-ink-400 focus:border-gold-500 focus:outline-none focus:ring-1 focus:ring-gold-500"
               placeholder="Senha"
               value={senha}

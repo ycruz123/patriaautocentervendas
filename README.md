@@ -10,7 +10,8 @@ custo de operação R$0 na v1, pensado para manutenção por uma pessoa só.
   marketplace da própria Vercel (Storage → Create Database), plano free.
 - **ORM**: Prisma.
 - **Hospedagem**: Vercel (plano free/Hobby).
-- **Autenticação**: senha única (single-user), sem custo de provedor de auth.
+- **Autenticação**: e-mail + senha (multiusuário), sessão assinada com
+  HMAC (Web Crypto), senha em hash bcrypt — sem custo de provedor de auth.
 
 Nenhuma dependência paga é necessária para as funcionalidades centrais (a
 única chamada externa nelas é o Google Places, dentro da cota mensal
@@ -36,7 +37,6 @@ abaixo antes de habilitá-la.
    ```bash
    cp .env.example .env
    ```
-   - `APP_PASSWORD`: senha única de acesso ao sistema.
    - `SESSION_SECRET`: string aleatória longa (`openssl rand -hex 32`).
    - `CRON_SECRET`: idem — a Vercel injeta esse valor automaticamente no
      cron job quando configurado nas env vars do projeto.
@@ -57,10 +57,9 @@ abaixo antes de habilitá-la.
 
 1. Importe o repositório na Vercel (New Project → selecione o repo).
 2. Configure as variáveis de ambiente da aplicação no painel do projeto
-   (Settings → Environment Variables): `APP_PASSWORD`, `SESSION_SECRET`,
-   `CRON_SECRET`, `GOOGLE_PLACES_API_KEY` (opcional), `ANTHROPIC_API_KEY`
-   (opcional, tem custo — ver seção "Sourcing via IA" abaixo) e
-   `CADENCIA_LEMBRETE_DIAS`.
+   (Settings → Environment Variables): `SESSION_SECRET`, `CRON_SECRET`,
+   `GOOGLE_PLACES_API_KEY` (opcional), `ANTHROPIC_API_KEY` (opcional, tem
+   custo — ver seção "Sourcing via IA" abaixo) e `CADENCIA_LEMBRETE_DIAS`.
 3. Adicione o banco: **Storage → Create Database → Prisma Postgres** (plano
    free) e conecte ao projeto. Isso cria as variáveis `DATABASE_URL`,
    `PRISMA_DATABASE_URL` e `POSTGRES_URL` automaticamente — o projeto usa
@@ -75,10 +74,39 @@ abaixo antes de habilitá-la.
    frequência mínima diária — por isso o job roda 1x/dia e verifica todos os
    leads parados de uma vez, e não a cada X dias por lead individualmente.
 
+## Autenticação e usuários
+
+Login é por e-mail + senha (multiusuário, não mais senha única). Papéis:
+
+- **ADMIN**: acesso total, incluindo o painel `/admin`.
+- **VENDEDOR**: acesso ao CRM (leads, sourcing, dashboard etc.), sem acesso
+  ao `/admin`.
+
+Os dois usuários iniciais já vêm criados por uma migration (senha em hash
+bcrypt, nunca em texto puro no repositório):
+
+- **Yuri Cruz** (`yuricruzoficiall@gmail.com`) — ADMIN
+- **Isabelli Loiola** (`isabelliloiola2015@gmail.com`) — VENDEDOR
+
+Novos usuários, redefinição de senha, mudança de papel ou desativação de
+acesso são feitos pelo próprio sistema, em **Administração** (`/admin`,
+visível só pra quem é ADMIN) — não precisa mexer em env var nem rodar
+comando pra isso. Um admin não consegue remover o próprio acesso de
+administrador nem excluir a própria conta (trava de segurança pra não
+ficar todo mundo sem acesso de admin por engano).
+
+A sessão é um token assinado com HMAC-SHA256 (Web Crypto, funciona tanto
+nas rotas normais quanto no middleware/Edge), guardando `userId`, e-mail,
+nome e papel — sem tocar o banco a cada requisição pra saber quem está
+logado. Senhas usam bcrypt (custo 12) via `bcryptjs` (pura JS, sem binding
+nativo, compatível com o runtime serverless da Vercel).
+
 ## Funcionalidades
 
 - **Pipeline de leads** (`/leads`): CRUD completo, busca e filtro por
   estágio/tipo/nome.
+- **Painel de administração** (`/admin`, só ADMIN): criar/editar/desativar
+  usuários, redefinir senha, mudar papel (ADMIN/VENDEDOR).
 - **Importação via CSV** (`/leads/importar`): sobe uma planilha, mapeia
   colunas (com auto-detecção de cabeçalhos comuns em PT/EN), mostra prévia e
   importa com a mesma normalização de WhatsApp e deduplicação por telefone

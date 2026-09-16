@@ -13,7 +13,12 @@ const NAV_ITEMS = [
   { href: "/perdas", label: "Análise de perda", icon: IconTrendDown },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export interface ShellUser {
+  nome: string;
+  role: "ADMIN" | "VENDEDOR";
+}
+
+export function AppShell({ children, user }: { children: React.ReactNode; user: ShellUser | null }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -23,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-ink-50 md:flex">
       {/* Sidebar — fixa no desktop */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-ink-950 md:flex">
-        <SidebarContent pathname={pathname} />
+        <SidebarContent pathname={pathname} user={user} />
       </aside>
 
       {/* Drawer — mobile */}
@@ -31,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawerOpen(false)} />
           <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-ink-950">
-            <SidebarContent pathname={pathname} onNavigate={() => setDrawerOpen(false)} />
+            <SidebarContent pathname={pathname} user={user} onNavigate={() => setDrawerOpen(false)} />
           </aside>
         </div>
       )}
@@ -57,7 +62,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function SidebarContent({
+  pathname,
+  user,
+  onNavigate,
+}: {
+  pathname: string;
+  user: ShellUser | null;
+  onNavigate?: () => void;
+}) {
   const router = useRouter();
 
   async function logout() {
@@ -65,6 +78,11 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
     router.push("/login");
     router.refresh();
   }
+
+  const navItems =
+    user?.role === "ADMIN"
+      ? [...NAV_ITEMS, { href: "/admin", label: "Administração", icon: IconShield }]
+      : NAV_ITEMS;
 
   return (
     <>
@@ -74,7 +92,7 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
 
       <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-6">
         <ul className="space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
@@ -97,6 +115,11 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
       </nav>
 
       <div className="border-t border-white/10 p-3">
+        {user && (
+          <p className="truncate px-3 pb-2 text-sm text-ink-300">
+            Olá, <span className="font-semibold text-white">{user.nome.split(" ")[0]}</span>
+          </p>
+        )}
         <button
           onClick={logout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-300 transition hover:bg-white/5 hover:text-white"
@@ -145,6 +168,20 @@ function IconTrendDown({ className }: { className?: string }) {
     <svg viewBox="0 0 24 24" fill="none" className={className}>
       <path d="M3 6l7 7 4-4 7 7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M15 16h6v-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconShield({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path
+        d="M12 3l7 3v5.5c0 4.5-3 8.2-7 9.5-4-1.3-7-5-7-9.5V6l7-3z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

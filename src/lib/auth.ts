@@ -1,11 +1,23 @@
 import { cookies } from "next/headers";
 
-// Usa Web Crypto (SubtleCrypto) em vez do módulo `crypto` do Node para que
-// esta lógica funcione tanto em rotas normais quanto no middleware (Edge
-// runtime), que não tem acesso às APIs de crypto do Node.
+// Usa Web Crypto (SubtleCrypto) em vez do módulo `crypto` do Node, e
+// nenhuma dependência com binding nativo (como bcrypt), para que este
+// arquivo possa ser importado tanto em rotas normais quanto no middleware
+// (Edge runtime). O hash de senha (bcryptjs) fica em lib/password.ts,
+// usado só pelas rotas de API (Node runtime) — nunca pelo middleware.
 
 const COOKIE_NAME = "b1_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 dias
+
+export type Role = "ADMIN" | "VENDEDOR";
+
+export interface SessionPayload {
+  userId: string;
+  email: string;
+  nome: string;
+  role: Role;
+  issuedAt: number;
+}
 
 function getSecret(): string {
   const secret = process.env.SESSION_SECRET;
@@ -24,9 +36,21 @@ async function hmacHex(secret: string, value: string): Promise<string> {
     ["sign"]
   );
   const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(signature))
+  return bytesToHex(new Uint8Array(signature));
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(Math.floor(hex.length / 2));
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
 }
 
 function constantTimeEqual(a: string, b: string): boolean {
@@ -38,31 +62,44 @@ function constantTimeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Token opaco assinado, sem dados sensíveis dentro (só um carimbo de emissão). */
-export async function createSessionToken(): Promise<string> {
-  const issuedAt = Date.now().toString();
-  const signature = await hmacHex(getSecret(), issuedAt);
-  return `${issuedAt}.${signature}`;
+/** Token assinado carregando os dados do usuário logado (sem a senha). */
+export async function createSessionToken(user: {
+  id: string;
+  email: string;
+  nome: string;
+  role: Role;
+}): Promise<string> {
+  const payload: SessionPayload = {
+    userId: user.id,
+    email: user.email,
+    nome: user.nome,
+    role: user.role,
+    issuedAt: Date.now(),
+  };
+  const payloadHex = bytesToHex(new TextEncoder().encode(JSON.stringify(payload)));
+  const signature = await hmacHex(getSecret(), payloadHex);
+  return `${payloadHex}.${signature}`;
 }
 
-export async function isValidSessionToken(token: string | undefined | null): Promise<boolean> {
-  if (!token) return false;
-  const [issuedAt, signature] = token.split(".");
-  if (!issuedAt || !signature) return false;
+export async function verifySessionToken(token: string | undefined | null): Promise<SessionPayload | null> {
+  if (!token) return null;
+  const [payloadHex, signature] = token.split(".");
+  if (!payloadHex || !signature) return null;
 
-  const expected = await hmacHex(getSecret(), issuedAt);
-  if (!constantTimeEqual(expected, signature)) return false;
+  const expected = await hmacHex(getSecret(), payloadHex);
+  if (!constantTimeEqual(expected, signature)) return null;
 
-  const ageMs = Date.now() - Number(issuedAt);
-  return ageMs >= 0 && ageMs <= SESSION_MAX_AGE_SECONDS * 1000;
-}
-
-export function checkPassword(candidate: string): boolean {
-  const expected = process.env.APP_PASSWORD;
-  if (!expected) {
-    throw new Error("APP_PASSWORD não configurado");
+  let payload: SessionPayload;
+  try {
+    payload = JSON.parse(new TextDecoder().decode(hexToBytes(payloadHex)));
+  } catch {
+    return null;
   }
-  return constantTimeEqual(candidate, expected);
+
+  const ageMs = Date.now() - payload.issuedAt;
+  if (!(ageMs >= 0 && ageMs <= SESSION_MAX_AGE_SECONDS * 1000)) return null;
+
+  return payload;
 }
 
 export const SESSION_COOKIE = {
@@ -70,8 +107,9 @@ export const SESSION_COOKIE = {
   maxAge: SESSION_MAX_AGE_SECONDS,
 };
 
-export async function readSessionFromCookies(): Promise<boolean> {
+/** Para uso em Server Components — lê e valida a sessão a partir do cookie. */
+export async function getSessionUser(): Promise<SessionPayload | null> {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
-  return isValidSessionToken(token);
+  return verifySessionToken(token);
 }

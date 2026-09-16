@@ -1,5 +1,26 @@
 import { z } from "zod";
 
+export const roleEnum = z.enum(["ADMIN", "VENDEDOR"]);
+
+export const loginSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+  senha: z.string().min(1, "Senha é obrigatória"),
+});
+
+export const createUserSchema = z.object({
+  nome: z.string().min(1, "Nome é obrigatório").max(200),
+  email: z.string().email("E-mail inválido"),
+  senha: z.string().min(6, "Senha deve ter ao menos 6 caracteres"),
+  role: roleEnum,
+});
+
+export const updateUserSchema = z.object({
+  nome: z.string().min(1).max(200).optional(),
+  role: roleEnum.optional(),
+  ativo: z.boolean().optional(),
+  senha: z.string().min(6, "Senha deve ter ao menos 6 caracteres").optional(),
+});
+
 export const tipoLeadEnum = z.enum(["B2B_PROFISSIONAL", "AUTOMOTIVO_PREMIUM", "OUTRO"]);
 export const origemLeadEnum = z.enum(["PROSPECCAO_ATIVA", "INDICACAO", "INBOUND", "OUTRO"]);
 export const estagioLeadEnum = z.enum([

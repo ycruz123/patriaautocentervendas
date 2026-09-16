@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidSessionToken } from "@/lib/auth";
+import { verifySessionToken } from "@/lib/auth";
 
 const PUBLIC_PATHS = ["/login", "/api/auth/login"];
 
@@ -16,17 +16,26 @@ export async function proxy(request: NextRequest) {
   }
 
   const token = request.cookies.get("b1_session")?.value;
-  if (await isValidSessionToken(token)) {
-    return NextResponse.next();
+  const session = await verifySessionToken(token);
+
+  if (!session) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  if (pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+  if (isAdminRoute && session.role !== "ADMIN") {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Acesso restrito ao administrador" }, { status: 403 });
+    }
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  const loginUrl = new URL("/login", request.url);
-  loginUrl.searchParams.set("next", pathname);
-  return NextResponse.redirect(loginUrl);
+  return NextResponse.next();
 }
 
 export const config = {

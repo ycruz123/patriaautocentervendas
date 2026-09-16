@@ -39,9 +39,10 @@ externa é o Google Places, dentro da cota mensal gratuita.
      cron job quando configurado nas env vars do projeto.
    - Demais variáveis: ver seção "Sourcing" abaixo.
 
-4. **Rodar as migrations**
+4. **Rodar as migrations** (já existe uma migration inicial versionada em
+   `prisma/migrations/` — este comando só aplica o que estiver pendente)
    ```bash
-   npx prisma migrate dev --name init
+   npx prisma migrate dev
    ```
 
 5. **Subir o app**
@@ -61,11 +62,10 @@ externa é o Google Places, dentro da cota mensal gratuita.
    `PRISMA_DATABASE_URL` e `POSTGRES_URL` automaticamente — o projeto usa
    só a `POSTGRES_URL` (ver `prisma/schema.prisma`), as outras duas ficam
    sem uso.
-4. Rode as migrations contra esse banco (`npx prisma migrate deploy` com
-   `POSTGRES_URL` apontando pra ele localmente, ou via SQL direto no
-   painel do banco) antes do primeiro acesso ao app — o deploy builda sem
-   problema mesmo sem isso, mas as páginas vão falhar ao consultar tabelas
-   que ainda não existem.
+4. As migrations rodam sozinhas: `npm run build` executa
+   `prisma migrate deploy` antes do `next build`, então todo deploy (este e
+   os próximos, sempre que o schema mudar) já cria/atualiza as tabelas
+   automaticamente contra `POSTGRES_URL`. Não precisa de passo manual.
 5. O `vercel.json` já define o cron diário do lembrete de cadência
    (`/api/cron/reminders`, 12h UTC). O plano Hobby só permite cron com
    frequência mínima diária — por isso o job roda 1x/dia e verifica todos os

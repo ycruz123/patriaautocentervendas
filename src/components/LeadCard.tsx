@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { StageBadge } from "@/components/StageBadge";
 import { TIPO_LABELS } from "@/types";
 
@@ -16,6 +17,7 @@ export interface LeadCardData {
 }
 
 export function LeadCard({ lead }: { lead: LeadCardData }) {
+  const router = useRouter();
   const [ligando, setLigando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -30,6 +32,7 @@ export function LeadCard({ lead }: { lead: LeadCardData }) {
         return;
       }
       window.open(data.link, "_blank");
+      router.refresh();
     } finally {
       setLigando(false);
     }

@@ -15,16 +15,17 @@ export async function applyDisposition(leadId: string, payload: DispositionPaylo
 
   // Se o usuário clicou em "Ligar" antes, já existe um RegistroLigacao em
   // aberto (resultado null) para esta tentativa — completa ele em vez de
-  // duplicar. Sem isso (disposição lançada manualmente), cria um novo já
-  // com o resultado.
-  const registroAberto = await prisma.registroLigacao.findFirst({
-    where: { leadId, resultado: null },
-    orderBy: { dataHora: "desc" },
-  });
+  // duplicar. Fecha TODOS os abertos do lead, não só o mais recente: se
+  // ligou mais de uma vez sem registrar a disposição entre as chamadas,
+  // um resultado só resolve a mais nova e deixa as outras órfãs, reaparecendo
+  // pra sempre no painel de pendentes. Sem nenhum aberto (disposição lançada
+  // manualmente, sem ter passado pelo botão "Ligar"), cria um novo já com o
+  // resultado.
+  const abertos = await prisma.registroLigacao.findMany({ where: { leadId, resultado: null } });
 
-  if (registroAberto) {
-    await prisma.registroLigacao.update({
-      where: { id: registroAberto.id },
+  if (abertos.length > 0) {
+    await prisma.registroLigacao.updateMany({
+      where: { id: { in: abertos.map((r) => r.id) } },
       data: { resultado: payload.resultado, detalhe: buildDetalhe(payload) },
     });
   } else {

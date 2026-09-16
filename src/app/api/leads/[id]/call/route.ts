@@ -17,7 +17,16 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   const agora = new Date();
 
   await prisma.$transaction([
-    prisma.lead.update({ where: { id: lead.id }, data: { ultimaTentativaContato: agora } }),
+    prisma.lead.update({
+      where: { id: lead.id },
+      data: {
+        ultimaTentativaContato: agora,
+        // Sai da aba "Novo lead" assim que a primeira ligação é feita —
+        // estágios seguintes (negociação, proposta etc.) não regridem aqui,
+        // só a disposição pós-ligação avança a partir daí.
+        ...(lead.estagio === "NOVO_LEAD" ? { estagio: "CONTATO_FEITO" as const } : {}),
+      },
+    }),
     prisma.registroLigacao.create({
       data: { leadId: lead.id, dataHora: agora },
     }),

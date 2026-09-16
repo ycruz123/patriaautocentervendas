@@ -1,7 +1,9 @@
 import clsx from "clsx";
 import { ESTAGIO_LABELS } from "@/types";
 
-const DOT_CORES: Record<string, string> = {
+/** Cor do indicador de cada estágio — compartilhada com LeadStageTabs pra
+ * manter a mesma cor batendo entre o badge do lead e a aba do pipeline. */
+export const STAGE_DOT_COLORS: Record<string, string> = {
   NOVO_LEAD: "bg-ink-400",
   CONTATO_FEITO: "bg-blue-500",
   PROPOSTA_ENVIADA: "bg-amber-500",
@@ -14,7 +16,7 @@ const DOT_CORES: Record<string, string> = {
 export function StageBadge({ estagio }: { estagio: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-100 bg-ink-50 px-2.5 py-1 text-xs font-medium text-ink-700">
-      <span className={clsx("h-1.5 w-1.5 rounded-full", DOT_CORES[estagio] ?? "bg-ink-400")} />
+      <span className={clsx("h-1.5 w-1.5 rounded-full", STAGE_DOT_COLORS[estagio] ?? "bg-ink-400")} />
       {ESTAGIO_LABELS[estagio] ?? estagio}
     </span>
   );

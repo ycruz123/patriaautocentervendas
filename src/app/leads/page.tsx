@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { prisma } from "@/lib/db";
 import { LeadCard } from "@/components/LeadCard";
 import { LeadFilters } from "@/components/LeadFilters";
+import { LeadStageTabs } from "@/components/LeadStageTabs";
 import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -13,12 +14,27 @@ export default async function LeadsPage({
   searchParams: Promise<{ estagio?: string; tipo?: string; busca?: string }>;
 }) {
   const params = await searchParams;
-  const where: Prisma.LeadWhereInput = {};
-  if (params.estagio) where.estagio = params.estagio as Prisma.EnumEstagioLeadFilter["equals"];
-  if (params.tipo) where.tipo = params.tipo as Prisma.EnumTipoLeadFilter["equals"];
-  if (params.busca) where.nome = { contains: params.busca, mode: "insensitive" };
 
-  const leads = await prisma.lead.findMany({ where, orderBy: { atualizadoEm: "desc" } });
+  // Contagem por estágio (pras abas) considera tipo/busca mas não o
+  // próprio estágio, senão toda aba não-ativa mostraria contagem 0.
+  const whereSemEstagio: Prisma.LeadWhereInput = {};
+  if (params.tipo) whereSemEstagio.tipo = params.tipo as Prisma.EnumTipoLeadFilter["equals"];
+  if (params.busca) whereSemEstagio.nome = { contains: params.busca, mode: "insensitive" };
+
+  const where: Prisma.LeadWhereInput = { ...whereSemEstagio };
+  if (params.estagio) where.estagio = params.estagio as Prisma.EnumEstagioLeadFilter["equals"];
+
+  const [leads, contagensPorEstagio] = await Promise.all([
+    prisma.lead.findMany({ where, orderBy: { atualizadoEm: "desc" } }),
+    prisma.lead.groupBy({ by: ["estagio"], where: whereSemEstagio, _count: { _all: true } }),
+  ]);
+
+  const counts: Record<string, number> = {};
+  let total = 0;
+  for (const c of contagensPorEstagio) {
+    counts[c.estagio] = c._count._all;
+    total += c._count._all;
+  }
 
   return (
     <div className="space-y-5">
@@ -36,6 +52,10 @@ export default async function LeadsPage({
           </Link>
         </div>
       </div>
+
+      <Suspense>
+        <LeadStageTabs counts={counts} total={total} />
+      </Suspense>
 
       <div className="card">
         <Suspense>

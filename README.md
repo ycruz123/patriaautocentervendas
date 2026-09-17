@@ -14,11 +14,10 @@ custo de operação R$0 na v1, pensado para manutenção por uma pessoa só.
   HMAC (Web Crypto), senha em hash scrypt (módulo `crypto` nativo do
   Node, sem dependência externa) — sem custo de provedor de auth.
 
-Nenhuma dependência paga é necessária para as funcionalidades centrais (a
-única chamada externa nelas é o Google Places, dentro da cota mensal
-gratuita). Há uma funcionalidade opcional e desligada por padrão — sourcing
-via IA com busca na web — que tem custo real por uso; ver seção própria
-abaixo antes de habilitá-la.
+Nenhuma dependência paga é necessária — o sistema não faz nenhuma busca de
+leads na internet por conta própria. A prospecção de leads novos (buscar
+empresas por nicho/cidade) é feita por fora, e o resultado entra no sistema
+via importação de CSV (`/leads/importar`).
 
 ## Setup local
 
@@ -41,7 +40,6 @@ abaixo antes de habilitá-la.
    - `SESSION_SECRET`: string aleatória longa (`openssl rand -hex 32`).
    - `CRON_SECRET`: idem — a Vercel injeta esse valor automaticamente no
      cron job quando configurado nas env vars do projeto.
-   - Demais variáveis: ver seção "Sourcing" abaixo.
 
 4. **Rodar as migrations** (já existe uma migration inicial versionada em
    `prisma/migrations/` — este comando só aplica o que estiver pendente)
@@ -58,9 +56,8 @@ abaixo antes de habilitá-la.
 
 1. Importe o repositório na Vercel (New Project → selecione o repo).
 2. Configure as variáveis de ambiente da aplicação no painel do projeto
-   (Settings → Environment Variables): `SESSION_SECRET`, `CRON_SECRET`,
-   `GOOGLE_PLACES_API_KEY` (opcional), `ANTHROPIC_API_KEY` (opcional, tem
-   custo — ver seção "Sourcing via IA" abaixo) e `CADENCIA_LEMBRETE_DIAS`.
+   (Settings → Environment Variables): `SESSION_SECRET`, `CRON_SECRET` e
+   `CADENCIA_LEMBRETE_DIAS`.
 3. Adicione o banco: **Storage → Create Database → Prisma Postgres** (plano
    free) e conecte ao projeto. Isso cria as variáveis `DATABASE_URL`,
    `PRISMA_DATABASE_URL` e `POSTGRES_URL` automaticamente — o projeto usa
@@ -80,8 +77,8 @@ abaixo antes de habilitá-la.
 Login é por e-mail + senha (multiusuário, não mais senha única). Papéis:
 
 - **ADMIN**: acesso total, incluindo o painel `/admin`.
-- **VENDEDOR**: acesso ao CRM (leads, sourcing, dashboard etc.), sem acesso
-  ao `/admin`.
+- **VENDEDOR**: acesso ao CRM (leads, dashboard etc.), sem acesso ao
+  `/admin`.
 
 Os dois usuários iniciais já vêm criados por uma migration (senha em hash
 scrypt, nunca em texto puro no repositório):
@@ -116,9 +113,9 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
   estágio, busca, filtro por tipo). `/leads/todos` dá acesso à lista sem
   separar por nicho, e a busca da tela de quadros já cai lá filtrada. Nicho
   é campo livre, preenchido manualmente (com autocomplete dos já usados),
-  em lote na importação de CSV, ou automaticamente a partir do termo
-  buscado no sourcing (Google Places/IA). Ligar pra um "Novo lead" já move
-  ele pra "Contato feito" — sai da aba/contagem de novos na hora.
+  em lote na importação de CSV, ou detectado por coluna/nome na própria
+  planilha (ver "Importação via CSV" abaixo). Ligar pra um "Novo lead" já
+  move ele pra "Contato feito" — sai da aba/contagem de novos na hora.
 - **Painel de administração** (`/admin`, só ADMIN): criar/editar/desativar
   usuários, redefinir senha, mudar papel (ADMIN/VENDEDOR).
 - **Importação via CSV** (`/leads/importar`): sobe uma planilha, mapeia
@@ -160,70 +157,30 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
 - **Dashboard** (`/`): totais, valor em pipeline, distribuição por estágio e
   segmento.
 - **Painel de perdas** (`/perdas`): motivos de recusa mais comuns.
-- **Sourcing automatizado** (`/sourcing`): busca de leads novos por
-  categoria+cidade no Google Places (gratuito), com deduplicação por
-  telefone, para os dois segmentos — mais uma busca livre opcional via IA
-  (tem custo, ver seção própria) pra nichos que o Maps não cobre bem.
 
-## Sourcing — Google Places (B2B profissional e Automotivo premium)
+## Sourcing de leads novos
 
-Os dois segmentos usam a mesma integração (`src/lib/google-places.ts`):
-Text Search para achar estabelecimentos por categoria+cidade, e Place
-Details por item para obter o telefone (Text Search sozinho não retorna
-telefone). Fica dentro da cota mensal gratuita da API no volume esperado do
-Base One; monitore o uso no Google Cloud Console se o volume de buscas
-crescer. Requer `GOOGLE_PLACES_API_KEY` configurada — sem ela, o botão de
-sourcing retorna erro explicando o que falta, em vez de falhar
-silenciosamente.
-
-Para B2B profissional, a categoria é texto livre (ex: "escritório de
-advocacia", "clínica odontológica", "escritório de contabilidade") — o
-Google Maps já indexa esses estabelecimentos com telefone e endereço, sem
-precisar de CNPJ ou de nenhuma API de dados abertos da Receita Federal.
-
-## Sourcing via IA — busca livre (opcional, tem custo real)
-
-Card adicional em `/sourcing` (`src/lib/ai-sourcing.ts`), pra nichos que o
-Google Places não indexa bem (associações de classe, diretórios setoriais,
-buscas mais específicas que uma categoria simples). Usa a API da Anthropic
-com a ferramenta de busca na web (`web_search`), pedindo ao modelo pra
-achar empresas reais na cidade informada e confirmar telefone numa fonte
-razoável (site oficial, Google Maps, diretório) antes de reportar.
-
-**Custo real, não R$0**: US$10 a cada 1.000 buscas realizadas pela IA, mais
-o custo normal de tokens do modelo (`claude-opus-5`). Na prática, uma busca
-por cidade fica na faixa de poucos centavos de dólar. Sem `ANTHROPIC_API_KEY`
-configurada, o card retorna erro explicando o que falta — nunca cai no
-sourcing gratuito silenciosamente.
-
-**Menos confiável que o Google Places para telefone**: o Google Places
-garante que o telefone veio de uma ficha comercial verificada; aqui, o
-telefone vem de uma página que a IA leu e pode estar desatualizado ou
-pertencer a outro contato da mesma empresa. Isso é aceitável porque o lead
-sempre entra como "Novo lead" esperando uma ligação manual antes de
-qualquer contato real — mas vale saber que a taxa de acerto é menor.
-
-Essa é uma exceção deliberada e vinda de decisão do usuário à regra geral
-do projeto de não usar IA para "varrer a internet" (ver seção abaixo) —
-mantida como opção adicional, desligada por padrão, com custo sinalizado
-explicitamente, exatamente pelos motivos que a regra original apontava.
+O sistema não busca leads na internet por conta própria (não tem mais tela
+de "Buscar leads" nem integração com Google Places/IA — existiu numa
+versão anterior e foi removida por decisão do usuário). A prospecção é
+feita por fora (ex: pedindo pro Claude buscar empresas por nicho/cidade) e
+o resultado entra pela importação de CSV (`/leads/importar`), que já
+detecta nome, WhatsApp, cidade e nicho/setor da planilha automaticamente.
 
 ## Números de WhatsApp
 
 Todo número é normalizado para o formato internacional (`55DDDNUMERO`) na
-entrada — ver `src/lib/whatsapp.ts`. Nem todo telefone encontrado no
-sourcing está necessariamente no WhatsApp: o botão "Ligar" só tenta abrir a
-conversa; se o número não tiver WhatsApp, a aba abre em branco/erro e o
-lead deve ser sinalizado para verificação manual (editar o lead e corrigir
-o número, ou movê-lo para "Dado inválido" após uma ligação com esse
-resultado).
+entrada — ver `src/lib/whatsapp.ts`. Nem todo telefone importado está
+necessariamente no WhatsApp: o botão "Ligar" só tenta abrir a conversa; se
+o número não tiver WhatsApp, a aba abre em branco/erro e o lead deve ser
+sinalizado para verificação manual (editar o lead e corrigir o número, ou
+movê-lo para "Dado inválido" após uma ligação com esse resultado).
 
 ## Fora de escopo na v1
 
 Ver o documento de briefing original — em resumo: nenhuma ligação
 automática sem ação do usuário, nenhuma telefonia paga, nenhum envio
-automático de mensagem ao lead. A camada de qualificação (heurística, sem
-custo) roda só sobre resultados já buscados por Google Places ou pela busca
-por IA — a única exceção adicionada depois, por pedido explícito e ciente
-do custo, é o card "Busca livre com IA" descrito acima; fora dele, nenhuma
-IA varre a internet por conta própria.
+automático de mensagem ao lead, nenhuma busca de leads na internet feita
+pelo próprio sistema (ver "Sourcing de leads novos" acima). A camada de
+qualificação (heurística, sem custo) roda só sobre leads importados via
+CSV.

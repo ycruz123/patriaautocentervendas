@@ -1,7 +1,7 @@
 /**
- * Camada de qualificação sobre os resultados brutos do sourcing — nunca faz
- * parte da busca em si. Sinaliza indícios (nome fantasia, avaliação no
- * Google) para ajudar a priorizar por onde começar a ligar.
+ * Camada de qualificação sobre leads recém-importados — sinaliza indícios
+ * (nome fantasia, avaliação no Google, se a planilha trouxer) para ajudar a
+ * priorizar por onde começar a ligar.
  *
  * Roda inteiramente com heurísticas locais, determinísticas e sem custo.
  */

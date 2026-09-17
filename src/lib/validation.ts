@@ -93,17 +93,6 @@ export const dispositionSchema = z.discriminatedUnion("resultado", [
   }),
 ]);
 
-export const sourcingGooglePlacesSchema = z.object({
-  categoria: z.string().min(1, "Categoria é obrigatória"),
-  cidades: z.array(z.string().min(1)).min(1, "Informe ao menos uma cidade"),
-});
-
-export const sourcingIASchema = z.object({
-  consulta: z.string().min(1, "Descreva o que buscar"),
-  cidades: z.array(z.string().min(1)).min(1, "Informe ao menos uma cidade"),
-  tipo: tipoLeadEnum,
-});
-
 export const importLeadsSchema = z.object({
   tipo: tipoLeadEnum,
   origem: origemLeadEnum,

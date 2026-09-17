@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createLeadSchema } from "@/lib/validation";
 import { normalizeWhatsapp } from "@/lib/whatsapp";
+import { inferirCategoriaPorNome } from "@/lib/categoria";
 import { Prisma } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
       tipo: parsed.data.tipo,
       origem: parsed.data.origem,
       estagio: parsed.data.estagio ?? "NOVO_LEAD",
-      categoria: parsed.data.categoria?.trim() || null,
+      categoria: parsed.data.categoria?.trim() || inferirCategoriaPorNome(parsed.data.nome),
       valor: parsed.data.valor ?? null,
       notas: parsed.data.notas ?? null,
       cidade: parsed.data.cidade ?? null,

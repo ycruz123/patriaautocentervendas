@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { isValidWhatsapp, normalizeWhatsapp } from "@/lib/whatsapp";
 import { qualificarHeuristica } from "@/lib/ai-qualify";
+import { inferirCategoriaPorNome } from "@/lib/categoria";
 import type { OrigemLead, Prisma, TipoLead } from "@prisma/client";
 
 export interface LinhaImportacao {
@@ -73,7 +74,7 @@ export async function executarImportacaoCSV(params: {
           notas: linha.notas?.trim() || null,
           tipo: params.tipo,
           origem: params.origem,
-          categoria: params.categoria?.trim() || null,
+          categoria: params.categoria?.trim() || inferirCategoriaPorNome(nome),
           estagio: "NOVO_LEAD",
           fonteSourcing: "IMPORTACAO_CSV",
           scoreQualificacao: qualificacao.score,

@@ -4,6 +4,7 @@ const REGRAS_CATEGORIA: { categoria: string; termos: string[] }[] = [
   { categoria: "Odontologia", termos: ["odont", "dentist", "dental"] },
   { categoria: "Contabilidade", termos: ["contabil", "contador"] },
   { categoria: "Óptica", termos: ["otica", "optica"] },
+  { categoria: "Engenharia", termos: ["engenhari", "engenheir"] },
 ];
 
 function semAcento(texto: string): string {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { prisma } from "@/lib/db";
-import { LeadCard } from "@/components/LeadCard";
+import { LeadsSelectableList } from "@/components/LeadsSelectableList";
 import { LeadFilters } from "@/components/LeadFilters";
 import { LeadStageTabs } from "@/components/LeadStageTabs";
 import { Prisma } from "@prisma/client";
@@ -34,9 +34,15 @@ export async function LeadsListView({
   const where: Prisma.LeadWhereInput = { ...whereSemEstagio };
   if (searchParams.estagio) where.estagio = searchParams.estagio as Prisma.EnumEstagioLeadFilter["equals"];
 
-  const [leads, contagensPorEstagio] = await Promise.all([
+  const [leads, contagensPorEstagio, categoriasExistentes] = await Promise.all([
     prisma.lead.findMany({ where, orderBy: { atualizadoEm: "desc" } }),
     prisma.lead.groupBy({ by: ["estagio"], where: whereSemEstagio, _count: { _all: true } }),
+    prisma.lead.findMany({
+      where: { categoria: { not: null } },
+      select: { categoria: true },
+      distinct: ["categoria"],
+      orderBy: { categoria: "asc" },
+    }),
   ]);
 
   const counts: Record<string, number> = {};
@@ -81,27 +87,24 @@ export async function LeadsListView({
         </Suspense>
       </div>
 
-      <div className="space-y-3">
-        {leads.length === 0 && (
-          <div className="card text-center text-sm text-ink-400">Nenhum lead encontrado.</div>
-        )}
-        {leads.map((lead) => (
-          <LeadCard
-            key={lead.id}
-            mostrarCategoria={mostrarCategoria}
-            lead={{
-              id: lead.id,
-              nome: lead.nome,
-              tipo: lead.tipo,
-              estagio: lead.estagio,
-              valor: lead.valor ? Number(lead.valor) : null,
-              cidade: lead.cidade,
-              categoria: lead.categoria,
-              sinalizadoRevisar: lead.sinalizadoRevisar,
-            }}
-          />
-        ))}
-      </div>
+      {leads.length === 0 ? (
+        <div className="card text-center text-sm text-ink-400">Nenhum lead encontrado.</div>
+      ) : (
+        <LeadsSelectableList
+          mostrarCategoria={mostrarCategoria}
+          categoriasExistentes={categoriasExistentes.map((c) => c.categoria!).filter(Boolean)}
+          leads={leads.map((lead) => ({
+            id: lead.id,
+            nome: lead.nome,
+            tipo: lead.tipo,
+            estagio: lead.estagio,
+            valor: lead.valor ? Number(lead.valor) : null,
+            cidade: lead.cidade,
+            categoria: lead.categoria,
+            sinalizadoRevisar: lead.sinalizadoRevisar,
+          }))}
+        />
+      )}
     </div>
   );
 }

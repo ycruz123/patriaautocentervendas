@@ -122,16 +122,24 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
 - **Painel de administração** (`/admin`, só ADMIN): criar/editar/desativar
   usuários, redefinir senha, mudar papel (ADMIN/VENDEDOR).
 - **Importação via CSV** (`/leads/importar`): sobe uma planilha, mapeia
-  colunas (com auto-detecção de cabeçalhos comuns em PT/EN, incluindo uma
-  coluna de nicho/setor — ex: "Setor", "Segmento", "Ramo" — quando a
-  planilha já vem com essa informação por linha), mostra prévia e importa
-  com a mesma normalização de WhatsApp e deduplicação por telefone do
-  resto do sistema. O nicho de cada lead segue esta ordem de prioridade:
-  coluna mapeada na própria linha → nicho definido pra todo o lote (campo
-  à parte, útil quando a planilha não tem essa coluna) → chute
-  conservador a partir de palavra-chave no nome (ver
-  `src/lib/categoria.ts`) → "Sem nicho definido". Zero custo — roda tudo
-  localmente e no próprio banco.
+  colunas por aproximação de nome (não precisa bater 100% com o cabeçalho —
+  "Setor (CNAE)", "Segmento_Empresa", "Área de Atuação" etc. são
+  reconhecidos), incluindo uma coluna de nicho/setor quando a planilha já
+  vem com essa informação por linha (mostra um aviso visível se nenhuma for
+  identificada), mostra prévia e importa com a mesma normalização de
+  WhatsApp e deduplicação por telefone do resto do sistema. O nicho de cada
+  lead segue esta ordem de prioridade: coluna mapeada na própria linha →
+  nicho definido pra todo o lote (campo à parte, útil quando a planilha não
+  tem essa coluna) → chute conservador a partir de palavra-chave no nome
+  (ver `src/lib/categoria.ts`) → "Sem nicho definido". Um nicho novo (que
+  ainda não existe em nenhum lead) já cria o quadro dele sozinho na tela de
+  leads — não precisa cadastrar nicho em lugar nenhum. Zero custo — roda
+  tudo localmente e no próprio banco.
+- **Mover leads em lote pra outro nicho**: dentro de qualquer lista de
+  leads (um quadro específico, "Sem nicho definido" ou "Todos"), selecione
+  vários pelo checkbox e mova todos de uma vez pro nicho certo — corrige
+  rápido uma importação que caiu no quadro errado, sem editar lead por
+  lead.
 - **Ligar via WhatsApp**: botão "Ligar" em cada lead abre `wa.me` e registra
   automaticamente a tentativa de contato. A chamada de voz em si é iniciada
   manualmente pelo usuário dentro do WhatsApp — sem API de voz, sem custo.

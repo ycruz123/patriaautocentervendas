@@ -21,7 +21,7 @@ const CAMPOS: { chave: CampoAlvo; label: string; obrigatorio: boolean; candidato
     chave: "categoria",
     label: "Nicho / Setor",
     obrigatorio: false,
-    candidatos: ["setor", "categoria", "nicho", "segmento", "ramo", "sector"],
+    candidatos: ["setor", "categoria", "nicho", "segmento", "ramo", "sector", "area", "especialidade", "atividade"],
   },
   { chave: "cidade", label: "Cidade", obrigatorio: false, candidatos: ["cidade", "city", "municipio"] },
   { chave: "uf", label: "UF", obrigatorio: false, candidatos: ["uf", "estado", "state"] },
@@ -84,7 +84,12 @@ export default function ImportarLeadsPage() {
 
         const novoMapeamento = { ...mapeamento };
         for (const campo of CAMPOS) {
-          const encontrado = campos.find((h) => campo.candidatos.includes(normalizarHeader(h)));
+          // Substring, não igualdade exata — pega variações tipo "Setor (CNAE)",
+          // "Segmento_Empresa" ou "Área de atuação" sem precisar bater 100%.
+          const encontrado = campos.find((h) => {
+            const normalizado = normalizarHeader(h);
+            return campo.candidatos.some((c) => normalizado.includes(c));
+          });
           novoMapeamento[campo.chave] = encontrado ?? "";
         }
         setMapeamento(novoMapeamento);
@@ -221,6 +226,14 @@ export default function ImportarLeadsPage() {
                   ? `Sua planilha já tem uma coluna de nicho/setor mapeada — cada linha usa o valor dela. Isso aqui só entra se alguma linha vier sem essa coluna preenchida.`
                   : `Organiza esse lote no quadro certo na tela de leads. Deixe em branco pra tentar adivinhar pelo nome, ou pra cair em "Sem nicho definido".`}
               </p>
+              {!mapeamento.categoria && !categoria.trim() && (
+                <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  ⚠ Nenhuma coluna de nicho/setor foi identificada nessa planilha, e você não
+                  preencheu um nicho pro lote. Esses leads vão cair em &quot;Sem nicho definido&quot;
+                  (a menos que o nome dê pra reconhecer sozinho). Se a sua planilha tem uma coluna
+                  com o setor da empresa, selecione ela acima em &quot;Nicho / Setor&quot;.
+                </p>
+              )}
             </div>
 
             {preview.length > 0 && (

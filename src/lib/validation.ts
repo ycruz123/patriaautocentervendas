@@ -124,3 +124,8 @@ export const importLeadsSchema = z.object({
     .min(1, "Nenhuma linha para importar")
     .max(2000, "Máximo de 2000 linhas por importação"),
 });
+
+export const bulkMoveNichoSchema = z.object({
+  leadIds: z.array(z.string().min(1)).min(1, "Selecione ao menos um lead").max(2000),
+  categoria: z.string().max(120).trim().min(1, "Informe o nicho de destino"),
+});

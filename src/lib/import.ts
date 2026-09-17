@@ -8,6 +8,7 @@ export interface LinhaImportacao {
   nome?: string;
   whatsapp?: string;
   contato?: string | null;
+  categoria?: string | null;
   cidade?: string | null;
   uf?: string | null;
   valor?: string | null;
@@ -74,7 +75,10 @@ export async function executarImportacaoCSV(params: {
           notas: linha.notas?.trim() || null,
           tipo: params.tipo,
           origem: params.origem,
-          categoria: params.categoria?.trim() || inferirCategoriaPorNome(nome),
+          // Prioridade: coluna de setor mapeada na própria linha do CSV
+          // (mais confiável, vem da fonte) → nicho aplicado ao lote →
+          // chute conservador a partir do nome.
+          categoria: linha.categoria?.trim() || params.categoria?.trim() || inferirCategoriaPorNome(nome),
           estagio: "NOVO_LEAD",
           fonteSourcing: "IMPORTACAO_CSV",
           scoreQualificacao: qualificacao.score,

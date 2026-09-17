@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Papa from "papaparse";
 import { TIPO_LABELS, ORIGEM_LABELS } from "@/types";
 
-type CampoAlvo = "nome" | "whatsapp" | "contato" | "cidade" | "uf" | "valor" | "notas";
+type CampoAlvo = "nome" | "whatsapp" | "contato" | "categoria" | "cidade" | "uf" | "valor" | "notas";
 
 const CAMPOS: { chave: CampoAlvo; label: string; obrigatorio: boolean; candidatos: string[] }[] = [
   { chave: "nome", label: "Nome", obrigatorio: true, candidatos: ["nome", "name", "empresa", "razaosocial", "company"] },
@@ -17,6 +17,12 @@ const CAMPOS: { chave: CampoAlvo; label: string; obrigatorio: boolean; candidato
     candidatos: ["whatsapp", "telefone", "celular", "fone", "phone", "numero", "telefonewhatsapp"],
   },
   { chave: "contato", label: "Contato (pessoa)", obrigatorio: false, candidatos: ["contato", "responsavel", "pessoa", "contact"] },
+  {
+    chave: "categoria",
+    label: "Nicho / Setor",
+    obrigatorio: false,
+    candidatos: ["setor", "categoria", "nicho", "segmento", "ramo", "sector"],
+  },
   { chave: "cidade", label: "Cidade", obrigatorio: false, candidatos: ["cidade", "city", "municipio"] },
   { chave: "uf", label: "UF", obrigatorio: false, candidatos: ["uf", "estado", "state"] },
   { chave: "valor", label: "Valor de contrato", obrigatorio: false, candidatos: ["valor", "value", "valorcontrato"] },
@@ -47,6 +53,7 @@ export default function ImportarLeadsPage() {
     nome: "",
     whatsapp: "",
     contato: "",
+    categoria: "",
     cidade: "",
     uf: "",
     valor: "",
@@ -101,6 +108,7 @@ export default function ImportarLeadsPage() {
         nome: mapeamento.nome ? linha[mapeamento.nome] : "",
         whatsapp: mapeamento.whatsapp ? linha[mapeamento.whatsapp] : "",
         contato: mapeamento.contato ? linha[mapeamento.contato] : null,
+        categoria: mapeamento.categoria ? linha[mapeamento.categoria] : null,
         cidade: mapeamento.cidade ? linha[mapeamento.cidade] : null,
         uf: mapeamento.uf ? linha[mapeamento.uf] : null,
         valor: mapeamento.valor ? linha[mapeamento.valor] : null,
@@ -199,7 +207,9 @@ export default function ImportarLeadsPage() {
             </div>
 
             <div>
-              <label className="label">Nicho / categoria (aplicado a todo o lote)</label>
+              <label className="label">
+                Nicho / categoria (aplicado só a linhas sem &quot;Nicho / Setor&quot; mapeado acima)
+              </label>
               <input
                 className="input"
                 placeholder="Ex: Advocacia, Contabilidade, Loja de ótica…"
@@ -207,8 +217,9 @@ export default function ImportarLeadsPage() {
                 onChange={(e) => setCategoria(e.target.value)}
               />
               <p className="mt-1 text-xs text-ink-400">
-                Organiza esse lote no quadro certo na tela de leads. Deixe em branco pra cair em
-                &quot;Sem nicho definido&quot;.
+                {mapeamento.categoria
+                  ? `Sua planilha já tem uma coluna de nicho/setor mapeada — cada linha usa o valor dela. Isso aqui só entra se alguma linha vier sem essa coluna preenchida.`
+                  : `Organiza esse lote no quadro certo na tela de leads. Deixe em branco pra tentar adivinhar pelo nome, ou pra cair em "Sem nicho definido".`}
               </p>
             </div>
 
@@ -265,7 +276,13 @@ export default function ImportarLeadsPage() {
               </div>
             )}
             <Link
-              href={categoria.trim() ? `/leads/nicho/${encodeURIComponent(categoria.trim())}` : "/leads/nicho/sem-nicho"}
+              href={
+                mapeamento.categoria
+                  ? "/leads"
+                  : categoria.trim()
+                    ? `/leads/nicho/${encodeURIComponent(categoria.trim())}`
+                    : "/leads/nicho/sem-nicho"
+              }
               className="btn-primary mt-2 inline-flex"
             >
               Ver leads importados

@@ -122,11 +122,16 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
 - **Painel de administração** (`/admin`, só ADMIN): criar/editar/desativar
   usuários, redefinir senha, mudar papel (ADMIN/VENDEDOR).
 - **Importação via CSV** (`/leads/importar`): sobe uma planilha, mapeia
-  colunas (com auto-detecção de cabeçalhos comuns em PT/EN), define o
-  nicho do lote (opcional, aplicado a todas as linhas — mesmo padrão do
-  tipo/origem), mostra prévia e importa com a mesma normalização de
-  WhatsApp e deduplicação por telefone do resto do sistema. Zero custo —
-  roda tudo localmente e no próprio banco.
+  colunas (com auto-detecção de cabeçalhos comuns em PT/EN, incluindo uma
+  coluna de nicho/setor — ex: "Setor", "Segmento", "Ramo" — quando a
+  planilha já vem com essa informação por linha), mostra prévia e importa
+  com a mesma normalização de WhatsApp e deduplicação por telefone do
+  resto do sistema. O nicho de cada lead segue esta ordem de prioridade:
+  coluna mapeada na própria linha → nicho definido pra todo o lote (campo
+  à parte, útil quando a planilha não tem essa coluna) → chute
+  conservador a partir de palavra-chave no nome (ver
+  `src/lib/categoria.ts`) → "Sem nicho definido". Zero custo — roda tudo
+  localmente e no próprio banco.
 - **Ligar via WhatsApp**: botão "Ligar" em cada lead abre `wa.me` e registra
   automaticamente a tentativa de contato. A chamada de voz em si é iniciada
   manualmente pelo usuário dentro do WhatsApp — sem API de voz, sem custo.

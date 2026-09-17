@@ -114,6 +114,7 @@ export const importLeadsSchema = z.object({
         nome: z.string().max(200).optional().default(""),
         whatsapp: z.string().max(50).optional().default(""),
         contato: z.string().max(200).optional().nullable(),
+        categoria: z.string().max(120).optional().nullable(),
         cidade: z.string().max(120).optional().nullable(),
         uf: z.string().max(2).optional().nullable(),
         valor: z.string().max(50).optional().nullable(),

@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { bulkMoveNichoSchema } from "@/lib/validation";
+import { getSessionUser } from "@/lib/auth";
 
 /** Move vários leads pra outro nicho de uma vez — pra corrigir em lote
- * quem caiu em "Sem nicho definido" (ou no nicho errado) numa importação. */
+ * quem caiu em "Sem nicho definido" (ou no nicho errado) numa importação.
+ * Mudar o nicho de um lead é ação restrita ao ADMIN. */
 export async function POST(request: NextRequest) {
+  const session = await getSessionUser();
+  if (session?.role !== "ADMIN") {
+    return NextResponse.json({ error: "Só o administrador pode mover leads entre nichos" }, { status: 403 });
+  }
+
   const body = await request.json();
   const parsed = bulkMoveNichoSchema.safeParse(body);
   if (!parsed.success) {

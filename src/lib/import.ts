@@ -28,6 +28,10 @@ export async function executarImportacaoCSV(params: {
   tipo: TipoLead;
   origem: OrigemLead;
   categoria?: string | null;
+  /** Definir nicho (e, por consequência, criar quadro novo) é ação de
+   * ADMIN — false ignora qualquer categoria vinda da linha, do lote ou
+   * adivinhada pelo nome, e os leads caem em "Sem nicho definido". */
+  permitirCategoria: boolean;
 }): Promise<ImportacaoResumo> {
   const resumo: ImportacaoResumo = {
     total: params.linhas.length,
@@ -77,8 +81,10 @@ export async function executarImportacaoCSV(params: {
           origem: params.origem,
           // Prioridade: coluna de setor mapeada na própria linha do CSV
           // (mais confiável, vem da fonte) → nicho aplicado ao lote →
-          // chute conservador a partir do nome.
-          categoria: linha.categoria?.trim() || params.categoria?.trim() || inferirCategoriaPorNome(nome),
+          // chute conservador a partir do nome. Só se permitirCategoria.
+          categoria: params.permitirCategoria
+            ? linha.categoria?.trim() || params.categoria?.trim() || inferirCategoriaPorNome(nome)
+            : null,
           estagio: "NOVO_LEAD",
           fonteSourcing: "IMPORTACAO_CSV",
           scoreQualificacao: qualificacao.score,

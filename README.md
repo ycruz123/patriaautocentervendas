@@ -78,7 +78,12 @@ Login é por e-mail + senha (multiusuário, não mais senha única). Papéis:
 
 - **ADMIN**: acesso total, incluindo o painel `/admin`.
 - **VENDEDOR**: acesso ao CRM (leads, dashboard etc.), sem acesso ao
-  `/admin`.
+  `/admin`. Trabalha os leads normalmente (ligar, registrar disposição,
+  editar dados do lead) mas não altera a organização estrutural: excluir
+  lead, definir/mudar o nicho de um lead (inclusive criar nicho novo por
+  esse caminho) e mover leads em lote entre nichos são restritos a ADMIN —
+  tanto escondido na tela quanto recusado pela API se tentado por fora
+  dela.
 
 Os dois usuários iniciais já vêm criados por uma migration (senha em hash
 scrypt, nunca em texto puro no repositório):
@@ -116,8 +121,16 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
   em lote na importação de CSV, ou detectado por coluna/nome na própria
   planilha (ver "Importação via CSV" abaixo). Ligar pra um "Novo lead" já
   move ele pra "Contato feito" — sai da aba/contagem de novos na hora.
-- **Painel de administração** (`/admin`, só ADMIN): criar/editar/desativar
-  usuários, redefinir senha, mudar papel (ADMIN/VENDEDOR).
+- **Painel de administração** (`/admin`, só ADMIN):
+  - **Usuários**: criar/editar/desativar, redefinir senha, mudar papel
+    (ADMIN/VENDEDOR).
+  - **Nichos/quadros**: lista todo nicho existente com o total de leads;
+    "renomear" um nicho (o mesmo campo também mescla dois nichos parecidos
+    — ex: "Engenharia Civil" → "Engenharia" — bastando digitar o nome do
+    nicho de destino) ou "esvaziar" (manda todo mundo de volta pra "Sem
+    nicho definido"). Excluir leads e mover leads entre nichos em lote são
+    feitos direto nas telas de Leads (`/leads/todos`, `/leads/nicho/...`),
+    com checkbox de seleção — também restritos a ADMIN.
 - **Importação via CSV** (`/leads/importar`): sobe uma planilha, mapeia
   colunas por aproximação de nome (não precisa bater 100% com o cabeçalho —
   "Setor (CNAE)", "Segmento_Empresa", "Área de Atuação" etc. são

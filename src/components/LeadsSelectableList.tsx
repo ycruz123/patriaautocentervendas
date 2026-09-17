@@ -5,24 +5,39 @@ import { useRouter } from "next/navigation";
 import { LeadCard, type LeadCardData } from "@/components/LeadCard";
 
 /**
- * Lista de leads com seleção múltipla + "mover pra outro nicho" em lote —
- * pra corrigir de uma vez quem caiu em "Sem nicho definido" (ou no nicho
- * errado) numa importação, sem editar lead por lead.
+ * Lista de leads. Pra ADMIN, com seleção múltipla + mover pra outro nicho
+ * ou excluir em lote — pra corrigir de uma vez quem caiu em "Sem nicho
+ * definido" (ou no nicho errado) numa importação, ou limpar duplicados,
+ * sem editar lead por lead. Excluir e mudar nicho são ações restritas ao
+ * administrador (ver /api/leads/bulk-move-nicho e /api/leads/bulk-delete),
+ * então pra quem não é admin a lista aparece sem seleção nenhuma.
  */
 export function LeadsSelectableList({
   leads,
   mostrarCategoria,
   categoriasExistentes,
+  isAdmin,
 }: {
   leads: LeadCardData[];
   mostrarCategoria: boolean;
   categoriasExistentes: string[];
+  isAdmin: boolean;
 }) {
   const router = useRouter();
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const [nichoDestino, setNichoDestino] = useState("");
-  const [movendo, setMovendo] = useState(false);
+  const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  if (!isAdmin) {
+    return (
+      <div className="space-y-3">
+        {leads.map((lead) => (
+          <LeadCard key={lead.id} lead={lead} mostrarCategoria={mostrarCategoria} />
+        ))}
+      </div>
+    );
+  }
 
   function alternar(id: string) {
     setSelecionados((atual) => {
@@ -45,7 +60,7 @@ export function LeadsSelectableList({
       return;
     }
     setErro(null);
-    setMovendo(true);
+    setProcessando(true);
     try {
       const res = await fetch("/api/leads/bulk-move-nicho", {
         method: "POST",
@@ -61,7 +76,36 @@ export function LeadsSelectableList({
     } catch (err) {
       setErro(err instanceof Error ? err.message : "Erro inesperado");
     } finally {
-      setMovendo(false);
+      setProcessando(false);
+    }
+  }
+
+  async function excluir() {
+    if (
+      !confirm(
+        `Excluir ${selecionados.size} lead${selecionados.size === 1 ? "" : "s"}? Essa ação não pode ser desfeita.`
+      )
+    ) {
+      return;
+    }
+    setErro(null);
+    setProcessando(true);
+    try {
+      const res = await fetch("/api/leads/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadIds: Array.from(selecionados) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(typeof data.error === "string" ? data.error : "Erro ao excluir leads");
+      }
+      limparSelecao();
+      router.refresh();
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : "Erro inesperado");
+    } finally {
+      setProcessando(false);
     }
   }
 
@@ -101,11 +145,14 @@ export function LeadsSelectableList({
               ))}
             </datalist>
             <div className="flex gap-2">
-              <button className="btn-secondary shrink-0" onClick={limparSelecao} disabled={movendo}>
+              <button className="btn-secondary shrink-0" onClick={limparSelecao} disabled={processando}>
                 Cancelar
               </button>
-              <button className="btn-gold shrink-0" onClick={mover} disabled={movendo}>
-                {movendo ? "Movendo…" : "Mover"}
+              <button className="btn-gold shrink-0" onClick={mover} disabled={processando}>
+                {processando ? "Movendo…" : "Mover"}
+              </button>
+              <button className="btn-danger shrink-0" onClick={excluir} disabled={processando}>
+                {processando ? "Excluindo…" : "Excluir"}
               </button>
             </div>
           </div>

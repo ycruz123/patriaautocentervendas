@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import { LeadsSelectableList } from "@/components/LeadsSelectableList";
 import { LeadFilters } from "@/components/LeadFilters";
 import { LeadStageTabs } from "@/components/LeadStageTabs";
@@ -34,7 +35,8 @@ export async function LeadsListView({
   const where: Prisma.LeadWhereInput = { ...whereSemEstagio };
   if (searchParams.estagio) where.estagio = searchParams.estagio as Prisma.EnumEstagioLeadFilter["equals"];
 
-  const [leads, contagensPorEstagio, categoriasExistentes] = await Promise.all([
+  const [session, leads, contagensPorEstagio, categoriasExistentes] = await Promise.all([
+    getSessionUser(),
     prisma.lead.findMany({ where, orderBy: { atualizadoEm: "desc" } }),
     prisma.lead.groupBy({ by: ["estagio"], where: whereSemEstagio, _count: { _all: true } }),
     prisma.lead.findMany({
@@ -44,6 +46,7 @@ export async function LeadsListView({
       orderBy: { categoria: "asc" },
     }),
   ]);
+  const isAdmin = session?.role === "ADMIN";
 
   const counts: Record<string, number> = {};
   let total = 0;
@@ -92,6 +95,7 @@ export async function LeadsListView({
       ) : (
         <LeadsSelectableList
           mostrarCategoria={mostrarCategoria}
+          isAdmin={isAdmin}
           categoriasExistentes={categoriasExistentes.map((c) => c.categoria!).filter(Boolean)}
           leads={leads.map((lead) => ({
             id: lead.id,

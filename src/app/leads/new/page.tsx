@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import { LeadForm } from "@/components/LeadForm";
 
 export default async function NewLeadPage({
@@ -8,12 +9,16 @@ export default async function NewLeadPage({
   searchParams: Promise<{ categoria?: string }>;
 }) {
   const params = await searchParams;
-  const categorias = await prisma.lead.findMany({
-    where: { categoria: { not: null } },
-    select: { categoria: true },
-    distinct: ["categoria"],
-    orderBy: { categoria: "asc" },
-  });
+  const [session, categorias] = await Promise.all([
+    getSessionUser(),
+    prisma.lead.findMany({
+      where: { categoria: { not: null } },
+      select: { categoria: true },
+      distinct: ["categoria"],
+      orderBy: { categoria: "asc" },
+    }),
+  ]);
+  const isAdmin = session?.role === "ADMIN";
 
   const voltarHref = params.categoria ? `/leads/nicho/${encodeURIComponent(params.categoria)}` : "/leads";
 
@@ -29,6 +34,7 @@ export default async function NewLeadPage({
         <LeadForm
           initial={params.categoria ? { categoria: params.categoria } : undefined}
           categoriasExistentes={categorias.map((c) => c.categoria!).filter(Boolean)}
+          isAdmin={isAdmin}
         />
       </div>
     </div>

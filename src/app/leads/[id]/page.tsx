@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import { StageBadge } from "@/components/StageBadge";
 import { LeadDetailActions } from "@/components/LeadDetailActions";
 import { TIPO_LABELS, ORIGEM_LABELS, RESULTADO_LABELS, MOTIVO_PERDA_LABELS } from "@/types";
@@ -9,13 +10,16 @@ export const dynamic = "force-dynamic";
 
 export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const lead = await prisma.lead.findUnique({
-    where: { id },
-    include: {
-      registrosLigacao: { orderBy: { dataHora: "desc" }, take: 20 },
-      lembretes: { where: { concluido: false }, orderBy: { dataHora: "asc" } },
-    },
-  });
+  const [session, lead] = await Promise.all([
+    getSessionUser(),
+    prisma.lead.findUnique({
+      where: { id },
+      include: {
+        registrosLigacao: { orderBy: { dataHora: "desc" }, take: 20 },
+        lembretes: { where: { concluido: false }, orderBy: { dataHora: "asc" } },
+      },
+    }),
+  ]);
 
   if (!lead) notFound();
 
@@ -108,7 +112,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
         <div className="space-y-5">
           <div className="card">
             <h2 className="mb-3 text-sm font-semibold text-ink-900">Ações</h2>
-            <LeadDetailActions leadId={lead.id} />
+            <LeadDetailActions leadId={lead.id} isAdmin={session?.role === "ADMIN"} />
           </div>
 
           {lead.lembretes.length > 0 && (

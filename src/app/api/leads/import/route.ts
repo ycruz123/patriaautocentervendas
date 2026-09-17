@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { importLeadsSchema } from "@/lib/validation";
 import { executarImportacaoCSV } from "@/lib/import";
+import { getSessionUser } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -9,12 +10,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  const session = await getSessionUser();
+
   try {
     const resumo = await executarImportacaoCSV({
       linhas: parsed.data.linhas,
       tipo: parsed.data.tipo,
       origem: parsed.data.origem,
       categoria: parsed.data.categoria,
+      permitirCategoria: session?.role === "ADMIN",
     });
     return NextResponse.json(resumo);
   } catch (err) {

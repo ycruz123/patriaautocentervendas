@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DispositionModal } from "@/components/DispositionModal";
 
-export function LeadDetailActions({ leadId }: { leadId: string }) {
+export function LeadDetailActions({ leadId, isAdmin }: { leadId: string; isAdmin: boolean }) {
   const router = useRouter();
   const [modalAberto, setModalAberto] = useState(false);
   const [ligando, setLigando] = useState(false);
@@ -48,13 +48,15 @@ export function LeadDetailActions({ leadId }: { leadId: string }) {
       <button onClick={() => setModalAberto(true)} className="btn-primary w-full">
         Registrar disposição
       </button>
-      <div className="grid grid-cols-2 gap-2 pt-1">
-        <a href={`/leads/${leadId}/edit`} className="btn-secondary text-center">
+      <div className={isAdmin ? "grid grid-cols-2 gap-2 pt-1" : "pt-1"}>
+        <a href={`/leads/${leadId}/edit`} className={isAdmin ? "btn-secondary text-center" : "btn-secondary w-full text-center"}>
           Editar
         </a>
-        <button onClick={excluir} disabled={excluindo} className="btn-danger">
-          {excluindo ? "Excluindo…" : "Excluir"}
-        </button>
+        {isAdmin && (
+          <button onClick={excluir} disabled={excluindo} className="btn-danger">
+            {excluindo ? "Excluindo…" : "Excluir"}
+          </button>
+        )}
       </div>
       {erro && <p className="text-sm text-red-600">{erro}</p>}
       {modalAberto && <DispositionModal leadId={leadId} onClose={() => setModalAberto(false)} />}

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import { LeadForm } from "@/components/LeadForm";
 
 export default async function EditLeadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [lead, categorias] = await Promise.all([
+  const [session, lead, categorias] = await Promise.all([
+    getSessionUser(),
     prisma.lead.findUnique({ where: { id } }),
     prisma.lead.findMany({
       where: { categoria: { not: null } },
@@ -40,6 +42,7 @@ export default async function EditLeadPage({ params }: { params: Promise<{ id: s
             uf: lead.uf,
           }}
           categoriasExistentes={categorias.map((c) => c.categoria!).filter(Boolean)}
+          isAdmin={session?.role === "ADMIN"}
         />
       </div>
     </div>

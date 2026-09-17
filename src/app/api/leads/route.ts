@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { createLeadSchema } from "@/lib/validation";
 import { normalizeWhatsapp } from "@/lib/whatsapp";
 import { inferirCategoriaPorNome } from "@/lib/categoria";
+import { getSessionUser } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
@@ -43,6 +44,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Definir/adivinhar o nicho de um lead é o que faz um quadro novo
+  // aparecer — restrito ao ADMIN. VENDEDOR cria o lead normalmente, só cai
+  // sempre em "Sem nicho definido" até um admin classificar.
+  const session = await getSessionUser();
+  const categoria =
+    session?.role === "ADMIN" ? parsed.data.categoria?.trim() || inferirCategoriaPorNome(parsed.data.nome) : null;
+
   const lead = await prisma.lead.create({
     data: {
       nome: parsed.data.nome,
@@ -51,7 +59,7 @@ export async function POST(request: NextRequest) {
       tipo: parsed.data.tipo,
       origem: parsed.data.origem,
       estagio: parsed.data.estagio ?? "NOVO_LEAD",
-      categoria: parsed.data.categoria?.trim() || inferirCategoriaPorNome(parsed.data.nome),
+      categoria,
       valor: parsed.data.valor ?? null,
       notas: parsed.data.notas ?? null,
       cidade: parsed.data.cidade ?? null,

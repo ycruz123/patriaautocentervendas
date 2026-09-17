@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { updateLeadSchema } from "@/lib/validation";
 import { normalizeWhatsapp } from "@/lib/whatsapp";
+import { getSessionUser } from "@/lib/auth";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -31,6 +32,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 
   const data: Record<string, unknown> = { ...parsed.data };
+  // Mudar o nicho de um lead (ou seja, mover ele de quadro) é ação
+  // restrita ao ADMIN — a tela nem oferece esse campo pra VENDEDOR, isso
+  // aqui é a garantia de verdade caso a requisição venha por fora da UI.
+  const session = await getSessionUser();
+  if (session?.role !== "ADMIN") {
+    delete data.categoria;
+  }
   if (parsed.data.whatsapp) {
     try {
       data.whatsapp = normalizeWhatsapp(parsed.data.whatsapp);
@@ -47,6 +55,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  const session = await getSessionUser();
+  if (session?.role !== "ADMIN") {
+    return NextResponse.json({ error: "Só o administrador pode excluir leads" }, { status: 403 });
+  }
+
   const { id } = await params;
   await prisma.lead.delete({ where: { id } });
   return NextResponse.json({ ok: true });

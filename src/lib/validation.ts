@@ -118,3 +118,12 @@ export const bulkMoveNichoSchema = z.object({
   leadIds: z.array(z.string().min(1)).min(1, "Selecione ao menos um lead").max(2000),
   categoria: z.string().max(120).trim().min(1, "Informe o nicho de destino"),
 });
+
+export const bulkDeleteLeadsSchema = z.object({
+  leadIds: z.array(z.string().min(1)).min(1, "Selecione ao menos um lead").max(2000),
+});
+
+export const moverNichoInteiroSchema = z.object({
+  de: z.string().max(120).nullable(),
+  para: z.string().max(120).trim().nullable(),
+});

@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
       tipo: parsed.data.tipo,
       origem: parsed.data.origem,
       estagio: parsed.data.estagio ?? "NOVO_LEAD",
+      categoria: parsed.data.categoria?.trim() || null,
       valor: parsed.data.valor ?? null,
       notas: parsed.data.notas ?? null,
       cidade: parsed.data.cidade ?? null,

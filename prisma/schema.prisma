@@ -85,9 +85,15 @@ model Lead {
   contato   String? // nome do contato, cargo, etc. (opcional)
   whatsapp  String // formato internacional normalizado: 55DDDNUMERO
 
-  tipo    TipoLead
-  origem  OrigemLead
-  estagio EstagioLead @default(NOVO_LEAD)
+  tipo      TipoLead
+  origem    OrigemLead
+  estagio   EstagioLead @default(NOVO_LEAD)
+  // Nicho/segmento em texto livre (ex: "Advocacia", "Contabilidade",
+  // "Loja de ótica") — organiza os leads em quadros na tela de leads. Sem
+  // valor cai no quadro "Sem nicho definido". Preenchido manualmente, em
+  // lote na importação de CSV, ou automaticamente a partir do termo de
+  // busca do sourcing (Google Places/IA).
+  categoria String?
 
   valor Decimal? @db.Decimal(10, 2)
   notas String?  @db.Text
@@ -115,6 +121,7 @@ model Lead {
   @@index([estagio])
   @@index([tipo])
   @@index([atualizadoEm])
+  @@index([categoria])
 }
 
 model RegistroLigacao {

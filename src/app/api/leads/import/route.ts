@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       linhas: parsed.data.linhas,
       tipo: parsed.data.tipo,
       origem: parsed.data.origem,
+      categoria: parsed.data.categoria,
     });
     return NextResponse.json(resumo);
   } catch (err) {

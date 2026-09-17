@@ -25,6 +25,7 @@ export async function executarImportacaoCSV(params: {
   linhas: LinhaImportacao[];
   tipo: TipoLead;
   origem: OrigemLead;
+  categoria?: string | null;
 }): Promise<ImportacaoResumo> {
   const resumo: ImportacaoResumo = {
     total: params.linhas.length,
@@ -72,6 +73,7 @@ export async function executarImportacaoCSV(params: {
           notas: linha.notas?.trim() || null,
           tipo: params.tipo,
           origem: params.origem,
+          categoria: params.categoria?.trim() || null,
           estagio: "NOVO_LEAD",
           fonteSourcing: "IMPORTACAO_CSV",
           scoreQualificacao: qualificacao.score,

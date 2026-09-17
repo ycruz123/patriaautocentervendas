@@ -54,6 +54,7 @@ export default function ImportarLeadsPage() {
   });
   const [tipo, setTipo] = useState("B2B_PROFISSIONAL");
   const [origem, setOrigem] = useState("INDICACAO");
+  const [categoria, setCategoria] = useState("");
   const [nomeArquivo, setNomeArquivo] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [resumo, setResumo] = useState<Resumo | null>(null);
@@ -109,7 +110,7 @@ export default function ImportarLeadsPage() {
       const res = await fetch("/api/leads/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ linhas: linhasMapeadas, tipo, origem }),
+        body: JSON.stringify({ linhas: linhasMapeadas, tipo, origem, categoria: categoria.trim() || null }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -197,6 +198,20 @@ export default function ImportarLeadsPage() {
               </div>
             </div>
 
+            <div>
+              <label className="label">Nicho / categoria (aplicado a todo o lote)</label>
+              <input
+                className="input"
+                placeholder="Ex: Advocacia, Contabilidade, Loja de ótica…"
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-ink-400">
+                Organiza esse lote no quadro certo na tela de leads. Deixe em branco pra cair em
+                &quot;Sem nicho definido&quot;.
+              </p>
+            </div>
+
             {preview.length > 0 && (
               <div>
                 <p className="label mb-2">Prévia (primeiras {preview.length} linhas)</p>
@@ -249,7 +264,10 @@ export default function ImportarLeadsPage() {
                 ))}
               </div>
             )}
-            <Link href="/leads" className="btn-primary mt-2 inline-flex">
+            <Link
+              href={categoria.trim() ? `/leads/nicho/${encodeURIComponent(categoria.trim())}` : "/leads/nicho/sem-nicho"}
+              className="btn-primary mt-2 inline-flex"
+            >
               Ver leads importados
             </Link>
           </div>

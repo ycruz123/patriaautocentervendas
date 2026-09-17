@@ -13,10 +13,11 @@ export interface LeadCardData {
   estagio: string;
   valor: number | string | null;
   cidade: string | null;
+  categoria?: string | null;
   sinalizadoRevisar: boolean;
 }
 
-export function LeadCard({ lead }: { lead: LeadCardData }) {
+export function LeadCard({ lead, mostrarCategoria }: { lead: LeadCardData; mostrarCategoria?: boolean }) {
   const router = useRouter();
   const [ligando, setLigando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -54,6 +55,7 @@ export function LeadCard({ lead }: { lead: LeadCardData }) {
         <Link href={`/leads/${lead.id}`} className="min-w-0 flex-1">
           <p className="truncate font-semibold text-ink-900">{lead.nome}</p>
           <p className="truncate text-xs text-ink-400">
+            {mostrarCategoria && lead.categoria ? `${lead.categoria} · ` : ""}
             {TIPO_LABELS[lead.tipo] ?? lead.tipo}
             {lead.cidade ? ` · ${lead.cidade}` : ""}
           </p>

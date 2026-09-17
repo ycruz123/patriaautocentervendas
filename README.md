@@ -107,14 +107,26 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
 
 ## Funcionalidades
 
-- **Pipeline de leads** (`/leads`): CRUD completo, busca e filtro por
-  estágio/tipo/nome.
+- **Pipeline de leads em quadros por nicho** (`/leads`): a entrada em Leads
+  é uma tela de quadros (um card por nicho/categoria — ex: Advocacia,
+  Contabilidade, Loja de ótica — mais "Sem nicho definido" pra quem não tem
+  categoria), cada um mostrando o total e quantos "novos" ainda esperam
+  ligação; quadros com mais novos aparecem primeiro. Clicar num quadro abre
+  `/leads/nicho/[categoria]` com a lista completa daquele nicho (abas por
+  estágio, busca, filtro por tipo). `/leads/todos` dá acesso à lista sem
+  separar por nicho, e a busca da tela de quadros já cai lá filtrada. Nicho
+  é campo livre, preenchido manualmente (com autocomplete dos já usados),
+  em lote na importação de CSV, ou automaticamente a partir do termo
+  buscado no sourcing (Google Places/IA). Ligar pra um "Novo lead" já move
+  ele pra "Contato feito" — sai da aba/contagem de novos na hora.
 - **Painel de administração** (`/admin`, só ADMIN): criar/editar/desativar
   usuários, redefinir senha, mudar papel (ADMIN/VENDEDOR).
 - **Importação via CSV** (`/leads/importar`): sobe uma planilha, mapeia
-  colunas (com auto-detecção de cabeçalhos comuns em PT/EN), mostra prévia e
-  importa com a mesma normalização de WhatsApp e deduplicação por telefone
-  do resto do sistema. Zero custo — roda tudo localmente e no próprio banco.
+  colunas (com auto-detecção de cabeçalhos comuns em PT/EN), define o
+  nicho do lote (opcional, aplicado a todas as linhas — mesmo padrão do
+  tipo/origem), mostra prévia e importa com a mesma normalização de
+  WhatsApp e deduplicação por telefone do resto do sistema. Zero custo —
+  roda tudo localmente e no próprio banco.
 - **Ligar via WhatsApp**: botão "Ligar" em cada lead abre `wa.me` e registra
   automaticamente a tentativa de contato. A chamada de voz em si é iniciada
   manualmente pelo usuário dentro do WhatsApp — sem API de voz, sem custo.

@@ -13,6 +13,16 @@ export interface SourcingResumo {
   erros: string[];
 }
 
+/** Deixa o termo de busca com cara de nome de nicho (primeira letra
+ * maiúscula) — mesmo texto que o usuário digitou vira o quadro na tela de
+ * leads, então buscas diferentes pro mesmo nicho (ex: "advocacia" vs
+ * "escritório de advocacia") continuam caindo em quadros distintos; não é
+ * uma normalização semântica, só cosmética. */
+function categoriaDoTermoBusca(termo: string): string {
+  const limpo = termo.trim();
+  return limpo ? limpo[0].toUpperCase() + limpo.slice(1) : limpo;
+}
+
 /**
  * Sourcing por Google Places, usado para os dois segmentos: B2B profissional
  * (advocacia, contabilidade, consultoria, clínicas, arquitetura) e
@@ -59,6 +69,7 @@ async function executarSourcingGooglePlaces(params: {
             origem: "PROSPECCAO_ATIVA",
             estagio: "NOVO_LEAD",
             fonteSourcing: "GOOGLE_PLACES",
+            categoria: categoriaDoTermoBusca(params.categoria),
             cidade,
             scoreQualificacao: qualificacao.score,
             sinaisQualificacao: qualificacao.sinais as Prisma.InputJsonValue,
@@ -124,6 +135,7 @@ export async function executarSourcingIA(params: {
             origem: "PROSPECCAO_ATIVA",
             estagio: "NOVO_LEAD",
             fonteSourcing: "IA_WEB",
+            categoria: categoriaDoTermoBusca(params.consulta),
             cidade: item.cidade || cidade,
             scoreQualificacao: qualificacao.score,
             sinaisQualificacao: qualificacao.sinais as Prisma.InputJsonValue,

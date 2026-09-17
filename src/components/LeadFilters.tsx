@@ -1,17 +1,18 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { TIPO_LABELS } from "@/types";
 
 export function LeadFilters() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   function update(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
-    router.push(`/leads?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   return (

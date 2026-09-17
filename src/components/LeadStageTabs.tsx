@@ -1,16 +1,17 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { ESTAGIO_LABELS, ESTAGIO_ORDEM } from "@/types";
 import { STAGE_DOT_COLORS } from "@/components/StageBadge";
 
 /** Abas do pipeline por estágio, com contagem — a organização visual
- * principal da lista de leads. Ligar pra um "Novo lead" já move ele pra
- * "Contato feito" (ver /api/leads/[id]/call), então a aba de novos leads
- * só mostra quem ainda não foi chamado. */
+ * principal dentro de um quadro (nicho) de leads. Ligar pra um "Novo lead"
+ * já move ele pra "Contato feito" (ver /api/leads/[id]/call), então a aba
+ * de novos leads só mostra quem ainda não foi chamado. */
 export function LeadStageTabs({ counts, total }: { counts: Record<string, number>; total: number }) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const ativo = searchParams.get("estagio") ?? "";
 
@@ -18,7 +19,7 @@ export function LeadStageTabs({ counts, total }: { counts: Record<string, number
     const params = new URLSearchParams(searchParams.toString());
     if (estagio) params.set("estagio", estagio);
     else params.delete("estagio");
-    router.push(`/leads?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   return (

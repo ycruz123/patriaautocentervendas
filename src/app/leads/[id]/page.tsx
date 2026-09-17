@@ -26,10 +26,14 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
     .map((p) => p[0]?.toUpperCase())
     .join("");
 
+  const voltarHref = lead.categoria
+    ? `/leads/nicho/${encodeURIComponent(lead.categoria)}`
+    : "/leads/nicho/sem-nicho";
+
   return (
     <div className="space-y-5">
-      <Link href="/leads" className="text-xs font-medium text-ink-400 hover:text-ink-600">
-        ← Voltar pra leads
+      <Link href={voltarHref} className="text-xs font-medium text-ink-400 hover:text-ink-600">
+        ← Voltar pro quadro {lead.categoria ?? "Sem nicho definido"}
       </Link>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -45,6 +49,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                   <StageBadge estagio={lead.estagio} />
                 </div>
                 <p className="mt-0.5 text-sm text-ink-400">
+                  {lead.categoria ? `${lead.categoria} · ` : ""}
                   {TIPO_LABELS[lead.tipo]} · {ORIGEM_LABELS[lead.origem]}
                   {lead.cidade ? ` · ${lead.cidade}${lead.uf ? "/" + lead.uf : ""}` : ""}
                 </p>

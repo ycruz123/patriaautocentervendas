@@ -58,6 +58,7 @@ export const createLeadSchema = z.object({
   tipo: tipoLeadEnum,
   origem: origemLeadEnum,
   estagio: estagioLeadEnum.optional(),
+  categoria: z.string().max(120).optional().nullable(),
   valor: z.coerce.number().nonnegative().optional().nullable(),
   notas: z.string().max(5000).optional().nullable(),
   cidade: z.string().max(120).optional().nullable(),
@@ -106,6 +107,7 @@ export const sourcingIASchema = z.object({
 export const importLeadsSchema = z.object({
   tipo: tipoLeadEnum,
   origem: origemLeadEnum,
+  categoria: z.string().max(120).optional().nullable(),
   linhas: z
     .array(
       z.object({

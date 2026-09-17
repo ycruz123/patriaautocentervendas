@@ -11,13 +11,20 @@ export interface LeadFormInitial {
   whatsapp?: string;
   tipo?: string;
   origem?: string;
+  categoria?: string | null;
   valor?: number | string | null;
   notas?: string | null;
   cidade?: string | null;
   uf?: string | null;
 }
 
-export function LeadForm({ initial }: { initial?: LeadFormInitial }) {
+export function LeadForm({
+  initial,
+  categoriasExistentes = [],
+}: {
+  initial?: LeadFormInitial;
+  categoriasExistentes?: string[];
+}) {
   const router = useRouter();
   const isEdit = Boolean(initial?.id);
 
@@ -26,6 +33,7 @@ export function LeadForm({ initial }: { initial?: LeadFormInitial }) {
   const [whatsapp, setWhatsapp] = useState(initial?.whatsapp ?? "");
   const [tipo, setTipo] = useState(initial?.tipo ?? "B2B_PROFISSIONAL");
   const [origem, setOrigem] = useState(initial?.origem ?? "PROSPECCAO_ATIVA");
+  const [categoria, setCategoria] = useState(initial?.categoria ?? "");
   const [valor, setValor] = useState(initial?.valor?.toString() ?? "");
   const [notas, setNotas] = useState(initial?.notas ?? "");
   const [cidade, setCidade] = useState(initial?.cidade ?? "");
@@ -43,6 +51,7 @@ export function LeadForm({ initial }: { initial?: LeadFormInitial }) {
         whatsapp,
         tipo,
         origem,
+        categoria: categoria.trim() || null,
         valor: valor ? Number(valor) : null,
         notas: notas || null,
         cidade: cidade || null,
@@ -117,6 +126,23 @@ export function LeadForm({ initial }: { initial?: LeadFormInitial }) {
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className="label">Nicho / categoria</label>
+        <input
+          className="input"
+          list="categorias-existentes"
+          placeholder="Ex: Advocacia, Contabilidade, Loja de ótica…"
+          value={categoria}
+          onChange={(e) => setCategoria(e.target.value)}
+        />
+        <datalist id="categorias-existentes">
+          {categoriasExistentes.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
+        <p className="mt-1 text-xs text-ink-400">Organiza esse lead no quadro certo na tela de leads.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">

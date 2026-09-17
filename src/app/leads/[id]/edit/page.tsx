@@ -5,7 +5,15 @@ import { LeadForm } from "@/components/LeadForm";
 
 export default async function EditLeadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const lead = await prisma.lead.findUnique({ where: { id } });
+  const [lead, categorias] = await Promise.all([
+    prisma.lead.findUnique({ where: { id } }),
+    prisma.lead.findMany({
+      where: { categoria: { not: null } },
+      select: { categoria: true },
+      distinct: ["categoria"],
+      orderBy: { categoria: "asc" },
+    }),
+  ]);
   if (!lead) notFound();
 
   return (
@@ -25,11 +33,13 @@ export default async function EditLeadPage({ params }: { params: Promise<{ id: s
             whatsapp: lead.whatsapp,
             tipo: lead.tipo,
             origem: lead.origem,
+            categoria: lead.categoria,
             valor: lead.valor ? Number(lead.valor) : null,
             notas: lead.notas,
             cidade: lead.cidade,
             uf: lead.uf,
           }}
+          categoriasExistentes={categorias.map((c) => c.categoria!).filter(Boolean)}
         />
       </div>
     </div>

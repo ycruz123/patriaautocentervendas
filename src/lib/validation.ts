@@ -163,3 +163,14 @@ export const criarCobrancaSchema = z.object({
 export const atualizarCobrancaSchema = z.object({
   status: statusCobrancaEnum,
 });
+
+export const criarDespesaSchema = z.object({
+  descricao: z.string().min(1, "Descreva a despesa").max(500),
+  categoria: z.string().max(120).optional().nullable(),
+  valor: z.coerce.number().positive("Valor precisa ser maior que zero"),
+  vencimento: z.string().datetime({ message: "Data de vencimento inválida" }),
+});
+
+export const atualizarDespesaSchema = z.object({
+  status: statusCobrancaEnum,
+});

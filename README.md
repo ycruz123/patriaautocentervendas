@@ -185,6 +185,22 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
   - **Histórico de atendimento**: registro do que foi feito/combinado
     com o cliente ao longo do tempo — aberto a qualquer usuário logado,
     é trabalho do dia a dia (não alteração estrutural/financeira).
+- **Financeiro** (`/financeiro`, só ADMIN): visão consolidada de dinheiro
+  entrando e saindo da Base One, segunda etapa da gestão geral do sistema
+  (depois de Clientes). Junta duas coisas numa tela só:
+  - **Cobranças abertas**: lista de todas as cobranças Pendente/Atrasado de
+    todos os clientes (as mesmas registradas na ficha de cada cliente, em
+    `/clientes/[id]`), com link direto pra cada cliente pra dar baixa.
+  - **Despesas**: contas a pagar da empresa — fornecedor, aluguel, salário
+    etc. — sem vínculo com cliente nenhum (modelo `Despesa`, reaproveita o
+    mesmo enum de status das cobranças: Pendente/Pago/Atrasado/Cancelado).
+    Cadastro e mudança de status direto na própria tela.
+  - **Cartões de resumo**: total a receber (cobranças em aberto), recebido
+    no mês, total a pagar (despesas em aberto), pago no mês, e saldo do mês
+    (recebido − pago).
+  Toda a tela, a API (`/api/despesas`) e o item de menu são restritos a
+  ADMIN — igual contrato/cobrança no módulo de Clientes, já que é
+  informação financeira da empresa, não só de um cliente.
 
 ## Sourcing de leads novos
 

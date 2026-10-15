@@ -84,7 +84,11 @@ function SidebarContent({
 
   const navItems =
     user?.role === "ADMIN"
-      ? [...NAV_ITEMS, { href: "/admin", label: "Administração", icon: IconShield }]
+      ? [
+          ...NAV_ITEMS,
+          { href: "/financeiro", label: "Financeiro", icon: IconCoin },
+          { href: "/admin", label: "Administração", icon: IconShield },
+        ]
       : NAV_ITEMS;
 
   return (
@@ -172,6 +176,15 @@ function IconTrendDown({ className }: { className?: string }) {
     <svg viewBox="0 0 24 24" fill="none" className={className}>
       <path d="M3 6l7 7 4-4 7 7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M15 16h6v-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconCoin({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M12 7v10M9.5 9.2c0-1 .9-1.7 2.5-1.7s2.5.8 2.5 1.9c0 2.6-5 1.3-5 3.9 0 1.1 1 1.9 2.5 1.9s2.5-.7 2.5-1.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }

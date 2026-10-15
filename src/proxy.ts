@@ -27,7 +27,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+  const isAdminRoute =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/admin") ||
+    pathname.startsWith("/financeiro") ||
+    pathname.startsWith("/api/despesas");
   if (isAdminRoute && session.role !== "ADMIN") {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Acesso restrito ao administrador" }, { status: 403 });

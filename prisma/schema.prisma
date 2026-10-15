@@ -232,3 +232,22 @@ model Cobranca {
   @@index([status])
   @@index([vencimento])
 }
+
+// Contas a pagar da empresa — fornecedor, aluguel, salário, etc. Não
+// ligada a cliente nenhum (é despesa geral da Base One, não pós-venda).
+// Reaproveita StatusCobranca: mesmos estados (Pendente/Pago/Atrasado/
+// Cancelado) fazem sentido tanto pra contas a receber quanto a pagar.
+model Despesa {
+  id           String         @id @default(cuid())
+  descricao    String
+  categoria    String?
+  valor        Decimal        @db.Decimal(10, 2)
+  vencimento   DateTime
+  status       StatusCobranca @default(PENDENTE)
+  pagoEm       DateTime?
+  criadoEm     DateTime       @default(now())
+  atualizadoEm DateTime       @updatedAt
+
+  @@index([status])
+  @@index([vencimento])
+}

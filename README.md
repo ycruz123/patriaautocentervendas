@@ -170,6 +170,21 @@ trocar para a API nativa do Node elimina esse tipo de risco de vez.
 - **Dashboard** (`/`): totais, valor em pipeline, distribuição por estágio e
   segmento.
 - **Painel de perdas** (`/perdas`): motivos de recusa mais comuns.
+- **Gestão de clientes (pós-venda)** (`/clientes`): primeiro módulo do
+  sistema pensado pra ir além do pipeline de leads, caminho pra virar a
+  gestão geral da Base One. Um lead vira **Cliente** quando um ADMIN
+  converte ele no próprio detalhe do lead ("Converter em cliente") —
+  não substitui o Lead, é a continuação dele (fica com `estagio =
+  CLIENTE_ATIVO`, e o registro de Cliente guarda um `leadId` único de
+  volta pra ele). A ficha do cliente tem três seções:
+  - **Contratos**: valor, data de início, data de renovação/vencimento,
+    status (Ativo/Vencido/Cancelado). ADMIN only.
+  - **Cobranças**: cada pagamento — valor, vencimento, status
+    (Pendente/Pago/Atrasado/Cancelado), opcionalmente ligado a um
+    contrato. ADMIN only.
+  - **Histórico de atendimento**: registro do que foi feito/combinado
+    com o cliente ao longo do tempo — aberto a qualquer usuário logado,
+    é trabalho do dia a dia (não alteração estrutural/financeira).
 
 ## Sourcing de leads novos
 

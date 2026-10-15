@@ -117,6 +117,7 @@ model Lead {
 
   registrosLigacao RegistroLigacao[]
   lembretes        Lembrete[]
+  cliente          Cliente?
 
   @@index([estagio])
   @@index([tipo])
@@ -148,4 +149,86 @@ model Lembrete {
 
   @@index([leadId])
   @@index([dataHora, concluido])
+}
+
+enum StatusContrato {
+  ATIVO
+  VENCIDO
+  CANCELADO
+}
+
+enum StatusCobranca {
+  PENDENTE
+  PAGO
+  ATRASADO
+  CANCELADO
+}
+
+// Gestão pós-venda — criado quando um Lead vira "Cliente ativo" (ação de
+// ADMIN, via "Converter em cliente" no detalhe do lead). Não substitui o
+// Lead: é a continuação dele, mesma pessoa/empresa, próxima fase.
+model Cliente {
+  id           String   @id @default(cuid())
+  leadId       String   @unique
+  lead         Lead     @relation(fields: [leadId], references: [id])
+  ativo        Boolean  @default(true)
+  observacoes  String?  @db.Text
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  contratos    Contrato[]
+  atendimentos Atendimento[]
+  cobrancas    Cobranca[]
+
+  @@index([ativo])
+}
+
+model Contrato {
+  id            String         @id @default(cuid())
+  clienteId     String
+  cliente       Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  valor         Decimal?       @db.Decimal(10, 2)
+  dataInicio    DateTime
+  dataRenovacao DateTime?
+  status        StatusContrato @default(ATIVO)
+  observacoes   String?        @db.Text
+  criadoEm      DateTime       @default(now())
+  atualizadoEm  DateTime       @updatedAt
+
+  cobrancas Cobranca[]
+
+  @@index([clienteId])
+  @@index([status])
+}
+
+// Histórico de serviço pós-venda — aberto pra qualquer usuário logado
+// registrar (é trabalho do dia a dia, não alteração estrutural).
+model Atendimento {
+  id        String   @id @default(cuid())
+  clienteId String
+  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  data      DateTime @default(now())
+  descricao String   @db.Text
+  criadoEm  DateTime @default(now())
+
+  @@index([clienteId])
+}
+
+model Cobranca {
+  id          String         @id @default(cuid())
+  clienteId   String
+  cliente     Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  contratoId  String?
+  contrato    Contrato?      @relation(fields: [contratoId], references: [id])
+  descricao   String?
+  valor       Decimal        @db.Decimal(10, 2)
+  vencimento  DateTime
+  status      StatusCobranca @default(PENDENTE)
+  pagoEm      DateTime?
+  criadoEm    DateTime       @default(now())
+  atualizadoEm DateTime      @updatedAt
+
+  @@index([clienteId])
+  @@index([status])
+  @@index([vencimento])
 }

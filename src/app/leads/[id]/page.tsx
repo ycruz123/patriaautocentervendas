@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { StageBadge } from "@/components/StageBadge";
 import { LeadDetailActions } from "@/components/LeadDetailActions";
+import { ConverterEmClienteCard } from "@/components/ConverterEmClienteCard";
 import { TIPO_LABELS, ORIGEM_LABELS, RESULTADO_LABELS, MOTIVO_PERDA_LABELS } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
       include: {
         registrosLigacao: { orderBy: { dataHora: "desc" }, take: 20 },
         lembretes: { where: { concluido: false }, orderBy: { dataHora: "asc" } },
+        cliente: { select: { id: true } },
       },
     }),
   ]);
@@ -114,6 +116,10 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
             <h2 className="mb-3 text-sm font-semibold text-ink-900">Ações</h2>
             <LeadDetailActions leadId={lead.id} isAdmin={session?.role === "ADMIN"} />
           </div>
+
+          {session?.role === "ADMIN" && (
+            <ConverterEmClienteCard leadId={lead.id} clienteId={lead.cliente?.id ?? null} />
+          )}
 
           {lead.lembretes.length > 0 && (
             <div className="card">

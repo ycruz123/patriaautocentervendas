@@ -49,3 +49,16 @@ export const MOTIVO_PERDA_LABELS: Record<string, string> = {
 };
 
 export const MAX_TENTATIVAS_SEM_SUCESSO = 3;
+
+export const STATUS_CONTRATO_LABELS: Record<string, string> = {
+  ATIVO: "Ativo",
+  VENCIDO: "Vencido",
+  CANCELADO: "Cancelado",
+};
+
+export const STATUS_COBRANCA_LABELS: Record<string, string> = {
+  PENDENTE: "Pendente",
+  PAGO: "Pago",
+  ATRASADO: "Atrasado",
+  CANCELADO: "Cancelado",
+};

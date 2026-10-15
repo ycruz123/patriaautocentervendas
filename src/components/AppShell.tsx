@@ -10,6 +10,7 @@ import { PendingCallsPanel } from "@/components/PendingCallsPanel";
 const NAV_ITEMS = [
   { href: "/", label: "Painel", icon: IconGrid },
   { href: "/leads", label: "Leads", icon: IconUsers },
+  { href: "/clientes", label: "Clientes", icon: IconBriefcase },
   { href: "/perdas", label: "Análise de perda", icon: IconTrendDown },
 ];
 
@@ -152,6 +153,16 @@ function IconUsers({ className }: { className?: string }) {
       <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
       <path d="M15.5 5.2c1.6.4 2.8 1.9 2.8 3.6 0 1.7-1.2 3.2-2.8 3.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
       <path d="M17 14.3c2.3.5 4 2.6 4 5.1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconBriefcase({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M8 7V5.5A1.5 1.5 0 019.5 4h5A1.5 1.5 0 0116 5.5V7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M3 12h18" stroke="currentColor" strokeWidth="1.7" />
     </svg>
   );
 }

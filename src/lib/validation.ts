@@ -127,3 +127,39 @@ export const moverNichoInteiroSchema = z.object({
   de: z.string().max(120).nullable(),
   para: z.string().max(120).trim().nullable(),
 });
+
+export const statusContratoEnum = z.enum(["ATIVO", "VENCIDO", "CANCELADO"]);
+export const statusCobrancaEnum = z.enum(["PENDENTE", "PAGO", "ATRASADO", "CANCELADO"]);
+
+export const converterLeadEmClienteSchema = z.object({
+  valorContrato: z.coerce.number().nonnegative().optional().nullable(),
+  dataInicio: z.string().datetime({ message: "Data de início inválida" }),
+  dataRenovacao: z.string().datetime({ message: "Data de renovação inválida" }).optional().nullable(),
+  observacoes: z.string().max(2000).optional().nullable(),
+});
+
+export const criarAtendimentoSchema = z.object({
+  descricao: z.string().min(1, "Descreva o atendimento").max(5000),
+});
+
+export const criarContratoSchema = z.object({
+  valor: z.coerce.number().nonnegative().optional().nullable(),
+  dataInicio: z.string().datetime({ message: "Data de início inválida" }),
+  dataRenovacao: z.string().datetime({ message: "Data de renovação inválida" }).optional().nullable(),
+  observacoes: z.string().max(2000).optional().nullable(),
+});
+
+export const atualizarContratoSchema = criarContratoSchema.partial().extend({
+  status: statusContratoEnum.optional(),
+});
+
+export const criarCobrancaSchema = z.object({
+  contratoId: z.string().optional().nullable(),
+  descricao: z.string().max(500).optional().nullable(),
+  valor: z.coerce.number().positive("Valor precisa ser maior que zero"),
+  vencimento: z.string().datetime({ message: "Data de vencimento inválida" }),
+});
+
+export const atualizarCobrancaSchema = z.object({
+  status: statusCobrancaEnum,
+});

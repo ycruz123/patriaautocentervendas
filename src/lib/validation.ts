@@ -123,6 +123,12 @@ export const bulkDeleteLeadsSchema = z.object({
   leadIds: z.array(z.string().min(1)).min(1, "Selecione ao menos um lead").max(2000),
 });
 
+export const bulkMarkPerdidoSchema = z.object({
+  leadIds: z.array(z.string().min(1)).min(1, "Selecione ao menos um lead").max(2000),
+  motivo: motivoPerdaEnum,
+  detalhe: z.string().max(2000).optional().nullable(),
+});
+
 export const moverNichoInteiroSchema = z.object({
   de: z.string().max(120).nullable(),
   para: z.string().max(120).trim().nullable(),

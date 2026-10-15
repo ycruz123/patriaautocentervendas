@@ -3,14 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LeadCard, type LeadCardData } from "@/components/LeadCard";
+import { MOTIVO_PERDA_LABELS } from "@/types";
 
 /**
- * Lista de leads. Pra ADMIN, com seleção múltipla + mover pra outro nicho
- * ou excluir em lote — pra corrigir de uma vez quem caiu em "Sem nicho
- * definido" (ou no nicho errado) numa importação, ou limpar duplicados,
- * sem editar lead por lead. Excluir e mudar nicho são ações restritas ao
- * administrador (ver /api/leads/bulk-move-nicho e /api/leads/bulk-delete),
- * então pra quem não é admin a lista aparece sem seleção nenhuma.
+ * Lista de leads. Pra ADMIN, com seleção múltipla + mover pra outro nicho,
+ * marcar como perdido ou excluir em lote — pra corrigir de uma vez quem
+ * caiu em "Sem nicho definido" (ou no nicho errado) numa importação, limpar
+ * duplicados, ou fechar em lote leads que não vão virar cliente, sem editar
+ * lead por lead. As três ações são restritas ao administrador (ver
+ * /api/leads/bulk-move-nicho, /api/leads/bulk-mark-perdido e
+ * /api/leads/bulk-delete), então pra quem não é admin a lista aparece sem
+ * seleção nenhuma.
  */
 export function LeadsSelectableList({
   leads,
@@ -28,6 +31,9 @@ export function LeadsSelectableList({
   const [nichoDestino, setNichoDestino] = useState("");
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [perdidoAberto, setPerdidoAberto] = useState(false);
+  const [motivoPerda, setMotivoPerda] = useState("OUTRO");
+  const [detalhePerda, setDetalhePerda] = useState("");
 
   if (!isAdmin) {
     return (
@@ -52,6 +58,9 @@ export function LeadsSelectableList({
     setSelecionados(new Set());
     setNichoDestino("");
     setErro(null);
+    setPerdidoAberto(false);
+    setMotivoPerda("OUTRO");
+    setDetalhePerda("");
   }
 
   async function mover() {
@@ -70,6 +79,32 @@ export function LeadsSelectableList({
       const data = await res.json();
       if (!res.ok) {
         throw new Error(typeof data.error === "string" ? data.error : "Erro ao mover leads");
+      }
+      limparSelecao();
+      router.refresh();
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : "Erro inesperado");
+    } finally {
+      setProcessando(false);
+    }
+  }
+
+  async function marcarPerdido() {
+    setErro(null);
+    setProcessando(true);
+    try {
+      const res = await fetch("/api/leads/bulk-mark-perdido", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadIds: Array.from(selecionados),
+          motivo: motivoPerda,
+          detalhe: detalhePerda.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(typeof data.error === "string" ? data.error : "Erro ao marcar leads como perdidos");
       }
       limparSelecao();
       router.refresh();
@@ -144,18 +179,53 @@ export function LeadsSelectableList({
                 <option key={c} value={c} />
               ))}
             </datalist>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button className="btn-secondary shrink-0" onClick={limparSelecao} disabled={processando}>
                 Cancelar
               </button>
               <button className="btn-gold shrink-0" onClick={mover} disabled={processando}>
                 {processando ? "Movendo…" : "Mover"}
               </button>
+              <button
+                className="btn-secondary shrink-0"
+                onClick={() => setPerdidoAberto((v) => !v)}
+                disabled={processando}
+              >
+                Marcar perdido
+              </button>
               <button className="btn-danger shrink-0" onClick={excluir} disabled={processando}>
                 {processando ? "Excluindo…" : "Excluir"}
               </button>
             </div>
           </div>
+
+          {perdidoAberto && (
+            <div className="mx-auto mt-2 flex max-w-5xl flex-col gap-2 border-t border-ink-100 pt-2 sm:flex-row sm:items-center">
+              <select
+                className="input w-auto sm:w-48"
+                value={motivoPerda}
+                onChange={(e) => setMotivoPerda(e.target.value)}
+              >
+                {Object.entries(MOTIVO_PERDA_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="input sm:flex-1"
+                placeholder="Detalhe (opcional)"
+                value={detalhePerda}
+                onChange={(e) => setDetalhePerda(e.target.value)}
+              />
+              <button className="btn-danger shrink-0" onClick={marcarPerdido} disabled={processando}>
+                {processando
+                  ? "Marcando…"
+                  : `Confirmar ${selecionados.size} como perdido${selecionados.size === 1 ? "" : "s"}`}
+              </button>
+            </div>
+          )}
+
           {erro && <p className="mx-auto mt-1 max-w-5xl text-xs text-red-600">{erro}</p>}
         </div>
       )}
